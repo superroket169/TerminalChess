@@ -2,7 +2,8 @@
 A two-player chess game that runs entirely in the terminal (CLI).
 
 ## Status
-Work in progress — currently between alpha and beta.
+- Work in progress — currently between alpha and beta.
+- Probably this have a lot error & mistake
 
 ## Features
 - Two-player local chess
