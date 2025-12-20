@@ -1,9 +1,18 @@
 # TerminalChess
-Chess game in CLI
+A two-player chess game that runs entirely in the terminal (CLI).
 
-> [!Work in Prosses]
-> This project still developing
+## Status
+Work in progress — currently between alpha and beta.
 
-# Features
-- Two player chess mode
-- Early Abort, Resign, Check meckanics
+## Features
+- Two-player local chess
+- Early abort and resign options
+- Check detection mechanics
+
+## Tech Stack
+- C++
+
+## Planned Features
+- Checkmate detection
+- Move validation improvements
+- Board rendering enhancements
