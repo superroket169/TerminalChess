@@ -62,34 +62,34 @@ Chess::MoveType Chess::isValidPieceMove(const Move& move, const Board& board)
      */
     if(currentPiece != Chess::Piece::Knight)
     {
-        int currentFile = (int)fromSquare.getCoordinate().file;
-        int currentRank = (int)fromSquare.getCoordinate().rank;
+        int currentargetFile = (int)fromSquare.getCoordinate().file;
+        int currentargetRank = (int)fromSquare.getCoordinate().rank;
         
-        int targetFile = (int)toSquare.getCoordinate().file;
-        int targetRank = (int)toSquare.getCoordinate().rank;
+        int targetargetFile = (int)toSquare.getCoordinate().file;
+        int targetargetRank = (int)toSquare.getCoordinate().rank;
     
         int fileStep = 0;
-        if (targetFile > currentFile) fileStep = 1;
-        else if (targetFile < currentFile) fileStep = -1;
+        if (targetargetFile > currentargetFile) fileStep = 1;
+        else if (targetargetFile < currentargetFile) fileStep = -1;
     
         int rankStep = 0;
-        if (targetRank > currentRank) rankStep = 1;
-        else if (targetRank < currentRank) rankStep = -1;
+        if (targetargetRank > currentargetRank) rankStep = 1;
+        else if (targetargetRank < currentargetRank) rankStep = -1;
     
-        currentFile += fileStep;
-        currentRank += rankStep;
+        currentargetFile += fileStep;
+        currentargetRank += rankStep;
     
-        while (currentFile != targetFile || currentRank != targetRank)
+        while (currentargetFile != targetargetFile || currentargetRank != targetargetRank)
         {
-            Rank tmpRank = (Rank)currentRank;
-            File tmpFile = (File)currentFile;
+            Rank tmpRank = (Rank)currentargetRank;
+            File tmpFile = (File)currentargetFile;
         
             Square checkSquare = board.getSquare({tmpFile, tmpRank});
             
             if(checkSquare.getPieceType() != Chess::Piece::Empty) return Chess::MoveType::Invalid;
         
-            currentFile += fileStep;
-            currentRank += rankStep;
+            currentargetFile += fileStep;
+            currentargetRank += rankStep;
         }
     }
 
@@ -115,7 +115,7 @@ Chess::MoveType Chess::isValidPawnMove(const Move& move, const Board& board)
 
     int direction = (fromSquare.getPieceSide() == Chess::Side::White) ? 1 : -1;
 
-    int startRank = (fromSquare.getPieceSide() == Chess::Side::White) ? 2 : 7;
+    int startargetRank = (fromSquare.getPieceSide() == Chess::Side::White) ? 2 : 7;
 
     int fromRank = (int)fromSquare.getCoordinate().rank;
     int fromFile = (int)fromSquare.getCoordinate().file;
@@ -135,7 +135,7 @@ Chess::MoveType Chess::isValidPawnMove(const Move& move, const Board& board)
         
         if (diffRank == 2 * direction)
         {
-            if (fromRank != startRank) return Chess::MoveType::Invalid;
+            if (fromRank != startargetRank) return Chess::MoveType::Invalid;
             return (toSquare.getPieceType() == Chess::Piece::Empty) ? Chess::MoveType::DoublePush : Chess::MoveType::Invalid;
         }
     }
@@ -229,12 +229,173 @@ Chess::MoveType Chess::isValidKingMove(const Move&, const Board&)
      */
 }
 
-bool Chess::isKingInCheck(const Board&, Side)
+/**
+ * yapılacaklar : 
+ * - şahın konumunu bul (side a göre)
+ * - tüm tahtadaki herhangi bir taşın şaha gidebilip gidemediğini kontrol et
+ * - - gidebiliyorsa return true
+ * - - yoksa false
+ */
+bool Chess::isKingInCheck(const Board& board, Side side)
+{
+    BoardCoordinate kingCoordinate;
+    for(size_t i = 1; i <= 8; ++i)
+    {
+        for(size_t j = 1; j <= 8; ++j)
+        {
+            if(board.getSquare({(File)i, (Rank)j}).getPieceSide() == side 
+            && board.getSquare({(File)i, (Rank)j}).getPieceType() == Chess::Piece::King) kingCoordinate = {(File)i, (Rank)j};
+        }
+    }
+
+    Square tmpTo(kingCoordinate, Chess::Piece::King, side);
+    for(size_t i = 1; i <= 8; ++i)
+    {
+        for(size_t j = 1; j <= 8; ++j)
+        {
+            Square tmpFrom({(File)i, (Rank)j}, board.getSquare({(File)i, (Rank)j}).getPieceType(), board.getSquare({(File)i, (Rank)j}).getPieceSide());
+            Move tmpMove(tmpFrom, tmpTo);
+            if(isValidPieceMove(tmpMove, board) != Chess::MoveType::Invalid) return true;
+        }
+    }
+
+    return false;
+}
+
+bool Chess::isAttackedBy(Square /**attacker tmpSquareuare */, Square /** king tmpSquareuare */, const Board&)
 {
     return false;
 }
 
-bool Chess::isAttackedBy(Square /**attacker square */, Square /** king square */, const Board&)
+bool Chess::isSquareAttacked(BoardCoordinate target, Side attackerSide, const Board& board)
 {
+    int targetFile = static_cast<int>(target.file);
+    int targetRank = static_cast<int>(target.rank);
+
+    /**
+     * Kale ve Vezir kontrolü:
+     */
+    int straightDirs[4][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+
+    for (auto& dir : straightDirs)
+    {
+        for (int dist = 1; dist < 8; ++dist)
+        {
+            // boardın içinde mi kontrolü
+            int checkFile = targetFile + (dir[0] * dist);
+            int checkRank = targetRank + (dir[1] * dist);
+            if (checkFile < 1 || checkFile > 8 || checkRank < 1 || checkRank > 8) break;            
+
+            Square tmpSquare = board.getSquare({(File)checkFile, (Rank)checkRank});
+            Piece pieceType = tmpSquare.getPieceType();
+            Side pieceSide = tmpSquare.getPieceSide();
+
+            if (pieceType != Piece::Empty)
+            {
+                if (pieceSide == attackerSide && (pieceType == Piece::Rook || pieceType == Piece::Queen))
+                    return true;
+                break; // daha fazla taramaya gereke yok
+            }
+        }
+    }
+
+    /**
+     * Vezir ve Fil kontrolü
+     */
+    int diagDirs[4][2] = { {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
+
+    for (auto& dir : diagDirs)
+    {
+        for (int dist = 1; dist < 8; ++dist)
+        {
+            int checkFile = targetFile + (dir[0] * dist);
+            int checkRank = targetRank + (dir[1] * dist);
+
+            if (checkFile < 1 || checkFile > 8 || checkRank < 1 || checkRank > 8) break;
+
+            Square tmpSquare = board.getSquare({(File)checkFile, (Rank)checkRank});
+            Piece pieceType = tmpSquare.getPieceType();
+            Side pieceSide = tmpSquare.getPieceSide();
+
+            if (pieceType != Piece::Empty)
+            {
+                if (pieceSide == attackerSide
+                && (pieceType == Piece::Bishop || pieceType == Piece::Queen))
+                    return true;
+                
+                break; // daha fazla taramaya gereke yok
+            }
+        }
+    }
+
+    /**
+     * at kontrolü
+     */
+    int knightMoves[8][2] = { 
+        {1, 2}, {1, -2}, {-1, 2}, {-1, -2},
+        {2, 1}, {2, -1}, {-2, 1}, {-2, -1} 
+    };
+
+    for (auto& move : knightMoves)
+    {
+        int checkFile = targetFile + move[0];
+        int checkRank = targetRank + move[1];
+
+        if (checkFile >= 1 && checkFile <= 8 && checkRank >= 1 && checkRank <= 8)
+        {
+            Square tmpSquare = board.getSquare({(File)checkFile, (Rank)checkRank});
+
+            if (tmpSquare.getPieceSide() == attackerSide
+            && tmpSquare.getPieceType() == Piece::Knight)
+                return true;
+            
+        }
+    }
+
+    /**
+     * piyon kontrolü
+     */
+    int pawnAttackRank = (attackerSide == Side::White) ? targetRank - 1 : targetRank + 1;
+
+    if (pawnAttackRank >= 1 && pawnAttackRank <= 8)
+    {
+        int attackFiles[] = { targetFile - 1, targetFile + 1 };
+
+        for (int i : attackFiles)
+        {
+            if (i >= 1 && i <= 8)
+            {
+                Square tmpSquare = board.getSquare({(File)i, (Rank)pawnAttackRank});
+
+                if (tmpSquare.getPieceSide() == attackerSide
+                && tmpSquare.getPieceType() == Piece::Pawn)
+                    return true;
+            }
+        }
+    }
+
+    /**
+     * şah kontrolü birbirlerine yaklaşmasınlar diye
+     */
+    int kingMoves[8][2] = { 
+        {1, 0}, {-1, 0}, {0, 1}, {0, -1},
+        {1, 1}, {1, -1}, {-1, 1}, {-1, -1} 
+    };
+
+    for (auto& move : kingMoves)
+    {
+        int checkFile = targetFile + move[0];
+        int checkRank = targetRank + move[1];
+
+        if (checkFile >= 1 && checkFile <= 8 && checkRank >= 1 && checkRank <= 8)
+        {
+            Square tmpSquare = board.getSquare({(File)checkFile, (Rank)checkRank});
+
+            if (tmpSquare.getPieceSide() == attackerSide
+            && tmpSquare.getPieceType() == Piece::King)
+                return true;
+        }
+    }
+
     return false;
 }

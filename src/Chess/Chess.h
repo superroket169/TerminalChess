@@ -239,4 +239,5 @@ namespace Chess
 
     bool isKingInCheck(const Board&, Side);
     bool isAttackedBy(Square /**attacker square */, Square /** king square */, const Board&);
+    bool Chess::isSquareAttacked(BoardCoordinate, Side, const Board&);
 }
