@@ -16,6 +16,21 @@ namespace Chess
         Rank rank;
 
         BoardCoordinate(File f = File::A, Rank r = Rank::One) : file(f), rank(r) {}
+
+        BoardCoordinate operator=(BoardCoordinate other)
+        {
+            this->file = other.file;
+            this->rank = other.rank;
+        }
+
+        bool operator==(BoardCoordinate other)
+        {
+            bool currReturn = 1;
+            currReturn *= this->file == other.file;
+            currReturn *= this->rank == other.rank;
+
+            return currReturn;
+        }
     };
 
     class Square
@@ -170,8 +185,23 @@ namespace Chess
         Square getSquare(BoardCoordinate) const;
         Square setSquare(Square);
 
+        void setEnPassantTarget(BoardCoordinate);
+        BoardCoordinate getEnPassantTarget() const;
+        void clearEnPassantTarget();
+
     private:
         std::array<std::array<Square, 9>, 9> boardMatris;
+
+        BoardCoordinate enPassantTarget = {(File) -1,(Rank) -1 };
+
+        bool whiteKingMoved = false;
+        bool blackKingMoved = false;
+        
+        bool whiteRookLeftMoved = false;  // a1 kalesi
+        bool whiteRookRightMoved = false; // h1 kalesi
+
+        bool blackRookLeftMoved = false;  // a8 kalesi
+        bool blackRookRightMoved = false; // h8 kalesi
     };
 
     class Move
@@ -189,4 +219,18 @@ namespace Chess
     };
 
     bool MoveValidator(const Move&, const Side&, const Board&);
+    
+    /**
+     * @brief just controls that paramaters:
+     * - is empty start and finish (expect the Knight)
+     * - is correct moves piece
+     * - special moves : rook, enpassant, dooble start
+     */
+    bool isValidPieceMove(const Move&, const Board&);
+    bool isValidPawnMove(const Move&, const Board&);
+    bool isValidKnightMove(const Move&, const Board&);
+    bool isValidBishopMove(const Move&, const Board&);
+    bool isValidRookMove(const Move&, const Board&);
+    bool isValidQueenMove(const Move&, const Board&);
+    bool isValidKingMove(const Move&, const Board&);
 }
