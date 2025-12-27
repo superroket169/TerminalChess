@@ -16,21 +16,21 @@ void Chess::Board::setEnPassantTarget(BoardCoordinate coord) { enPassantTarget =
 void Chess::Board::clearEnPassantTarget() { enPassantTarget = {(File) -1, (Rank)(-1)}; }
 Chess::BoardCoordinate Chess::Board::getEnPassantTarget() const { return enPassantTarget; }
 
-bool Chess::MoveValidator(const Chess::Move& move, const Chess::Side& side, const Chess::Board& board)
+Chess::MoveType Chess::MoveValidator(const Chess::Move& move, const Chess::Side& side, const Chess::Board& board)
 {
-
+    return Chess::MoveType::Valid;
 }
 
-bool Chess::isValidPieceMove(const Move& move, const Board& board)
+Chess::MoveType Chess::isValidPieceMove(const Move& move, const Board& board)
 {
     Square fromSquare = board.getSquare(move.getFrom().getCoordinate());
     Square toSquare = board.getSquare(move.getTo().getCoordinate());
 
     Piece currentPiece = fromSquare.getPieceType();
-    if(currentPiece == Chess::Piece::Empty) return false;
+    if(currentPiece == Chess::Piece::Empty) return Chess::MoveType::Invalid;
 
-    if(fromSquare.getPieceSide() == toSquare.getPieceSide()) return false;
-    if(fromSquare.getCoordinate().file == toSquare.getCoordinate().file && fromSquare.getCoordinate().rank == toSquare.getCoordinate().rank) return false; 
+    if(fromSquare.getPieceSide() == toSquare.getPieceSide()) return Chess::MoveType::Invalid;
+    if(fromSquare.getCoordinate().file == toSquare.getCoordinate().file && fromSquare.getCoordinate().rank == toSquare.getCoordinate().rank) return Chess::MoveType::Invalid; 
 
     /**
      * başlangıç ve bitiş arasında taş varmı bakıyor:
@@ -61,27 +61,29 @@ bool Chess::isValidPieceMove(const Move& move, const Board& board)
         
             Square checkSquare = board.getSquare({tmpFile, tmpRank});
             
-            if(checkSquare.getPieceType() != Chess::Piece::Empty) return false;
+            if(checkSquare.getPieceType() != Chess::Piece::Empty) return Chess::MoveType::Invalid;
         
             currentFile += fileStep;
             currentRank += rankStep;
         }
     }
 
+    Chess::MoveType currentReturn;
+
     switch (currentPiece)
     {
-        case Piece::Pawn    : return isValidPawnMove(move, board);
-        case Piece::Bishop  : return isValidBishopMove(move, board);
-        case Piece::Knight  : return isValidKnightMove(move, board);
-        case Piece::Rook    : return isValidRookMove(move, board);
-        case Piece::Queen   : return isValidQueenMove(move, board);
-        case Piece::King    : return isValidKingMove(move, board);
+        case Piece::Pawn    : currentReturn = isValidPawnMove(move, board);
+        case Piece::Bishop  : currentReturn = isValidBishopMove(move, board);
+        case Piece::Knight  : currentReturn = isValidKnightMove(move, board);
+        case Piece::Rook    : currentReturn = isValidRookMove(move, board);
+        case Piece::Queen   : currentReturn = isValidQueenMove(move, board);
+        case Piece::King    : currentReturn = isValidKingMove(move, board);
     }
     
-    return true;
+    return currentReturn;
 }
 
-bool Chess::isValidPawnMove(const Move& move, const Board& board)
+Chess::MoveType Chess::isValidPawnMove(const Move& move, const Board& board)
 {
     Square fromSquare = board.getSquare(move.getFrom().getCoordinate());
     Square toSquare = board.getSquare(move.getTo().getCoordinate());
@@ -103,13 +105,13 @@ bool Chess::isValidPawnMove(const Move& move, const Board& board)
     {
         if (diffRank == direction)
         {
-            return (toSquare.getPieceType() == Chess::Piece::Empty);
+            return (toSquare.getPieceType() == Chess::Piece::Empty) ? Chess::MoveType::Valid : Chess::MoveType::Invalid;
         }
         
         if (diffRank == 2 * direction)
         {
-            if (fromRank != startRank) return false;
-            return (toSquare.getPieceType() == Chess::Piece::Empty);
+            if (fromRank != startRank) return Chess::MoveType::Invalid;
+            return (toSquare.getPieceType() == Chess::Piece::Empty) ? Chess::MoveType::DoublePush : Chess::MoveType::Invalid;
         }
     }
     
@@ -117,19 +119,19 @@ bool Chess::isValidPawnMove(const Move& move, const Board& board)
     {
         if (diffRank == direction)
         {
-            if (toSquare.getPieceType() != Chess::Piece::Empty) return true;
+            if (toSquare.getPieceType() != Chess::Piece::Empty) return Chess::MoveType::PawnCapture;
 
             BoardCoordinate targetCoord = toSquare.getCoordinate();
             BoardCoordinate epTarget = board.getEnPassantTarget();
 
-            if (targetCoord == epTarget) return true;
+            if (targetCoord == epTarget) return Chess::MoveType::EnPassant;
         }
     }
 
-    return false;
+    return Chess::MoveType::Invalid;
 }
 
-bool Chess::isValidKnightMove(const Move& move, const Board& board)
+Chess::MoveType Chess::isValidKnightMove(const Move& move, const Board& board)
 {
     int fromRank = (int)move.getFrom().getCoordinate().rank;
     int fromFile = (int)move.getFrom().getCoordinate().file;
@@ -139,10 +141,14 @@ bool Chess::isValidKnightMove(const Move& move, const Board& board)
     int dRank = std::abs(toRank - fromRank);
     int dFile = std::abs(toFile - fromFile);
 
-    return (dRank == 2 && dFile == 1) || (dRank == 1 && dFile == 2);
+    bool currentReturn = (dRank == 2 && dFile == 1) || (dRank == 1 && dFile == 2);
+    if(!currentReturn) return MoveType::Invalid;
+
+    if(move.getTo().getPieceType() != Chess::Piece::Empty) return MoveType::Capture;
+    return MoveType::Valid;
 }
 
-bool Chess::isValidBishopMove(const Move& move, const Board& board)
+Chess::MoveType Chess::isValidBishopMove(const Move& move, const Board& board)
 {
     int fromRank = (int)move.getFrom().getCoordinate().rank;
     int fromFile = (int)move.getFrom().getCoordinate().file;
@@ -152,10 +158,14 @@ bool Chess::isValidBishopMove(const Move& move, const Board& board)
     int dRank = std::abs(toRank - fromRank);
     int dFile = std::abs(toFile - fromFile);
 
-    return (dRank == dFile);
+    bool currentReturn = (dRank == dFile);
+    if(!currentReturn) return MoveType::Invalid;
+
+    if(move.getTo().getPieceType() != Chess::Piece::Empty) return MoveType::Capture;
+    return MoveType::Valid;
 }
 
-bool Chess::isValidRookMove(const Move& move, const Board& board)
+Chess::MoveType Chess::isValidRookMove(const Move& move, const Board& board)
 {
     int fromRank = (int)move.getFrom().getCoordinate().rank;
     int fromFile = (int)move.getFrom().getCoordinate().file;
@@ -165,15 +175,23 @@ bool Chess::isValidRookMove(const Move& move, const Board& board)
     int dRank = std::abs(toRank - fromRank);
     int dFile = std::abs(toFile - fromFile);
 
-    return (dRank == 0 || dFile == 0);
+    bool currentReturn = (dRank == 0 || dFile == 0);
+    if(!currentReturn) return MoveType::Invalid;
+
+    if(move.getTo().getPieceType() != Chess::Piece::Empty) return MoveType::Capture;
+    return MoveType::Valid;
 }
 
-bool Chess::isValidQueenMove(const Move& move, const Board& board)
+Chess::MoveType Chess::isValidQueenMove(const Move& move, const Board& board)
 {
-    return isValidRookMove(move, board) || isValidBishopMove(move, board);
+    bool currentReturn = (bool)isValidRookMove(move, board) || (bool)isValidBishopMove(move, board);
+    if(!currentReturn) return MoveType::Invalid;
+
+    if(move.getTo().getPieceType() != Chess::Piece::Empty) return MoveType::Capture;
+    return MoveType::Valid;
 }
 
-bool Chess::isValidKingMove(const Move&, const Board&)
+Chess::MoveType Chess::isValidKingMove(const Move&, const Board&)
 {
-    return true;
+    return Chess::MoveType::Valid;
 }

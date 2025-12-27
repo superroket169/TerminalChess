@@ -10,6 +10,8 @@ namespace Chess
     enum class Piece { Empty = 0, Pawn, Knight, Bishop, Rook, Queen, King }; 
     enum class Side { None = -1, White, Black };
 
+    enum class MoveType { Invalid = 0, Valid, Capture, DoublePush, EnPassant, PawnCapture, KingsideCastling, QueensideCastling, Promotion };
+
     struct BoardCoordinate
     {
         File file;
@@ -218,7 +220,7 @@ namespace Chess
         Square to;
     };
 
-    bool MoveValidator(const Move&, const Side&, const Board&);
+    MoveType MoveValidator(const Move&, const Side&, const Board&);
     
     /**
      * @brief just controls that paramaters:
@@ -226,11 +228,11 @@ namespace Chess
      * - is correct moves piece
      * - special moves : rook, enpassant, dooble start
      */
-    bool isValidPieceMove(const Move&, const Board&);
-    bool isValidPawnMove(const Move&, const Board&);
-    bool isValidKnightMove(const Move&, const Board&);
-    bool isValidBishopMove(const Move&, const Board&);
-    bool isValidRookMove(const Move&, const Board&);
-    bool isValidQueenMove(const Move&, const Board&);
-    bool isValidKingMove(const Move&, const Board&);
+    MoveType isValidPieceMove(const Move&, const Board&);
+    MoveType isValidPawnMove(const Move&, const Board&);
+    MoveType isValidKnightMove(const Move&, const Board&);
+    MoveType isValidBishopMove(const Move&, const Board&);
+    MoveType isValidRookMove(const Move&, const Board&);
+    MoveType isValidQueenMove(const Move&, const Board&);
+    MoveType isValidKingMove(const Move&, const Board&);
 }
