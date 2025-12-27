@@ -10,7 +10,7 @@ namespace Chess
     enum class Piece { Empty = 0, Pawn, Knight, Bishop, Rook, Queen, King }; 
     enum class Side { None = -1, White, Black };
 
-    enum class MoveType { Invalid = 0, Valid, Capture, DoublePush, EnPassant, PawnCapture, KingsideCastling, QueensideCastling, Promotion };
+    enum class MoveType { inCheck = 0, Invalid = 0, Valid, Capture, DoublePush, EnPassant, PawnCapture, KingsideCastling, QueensideCastling, Promotion };
 
     struct BoardCoordinate
     {
@@ -235,4 +235,7 @@ namespace Chess
     MoveType isValidRookMove(const Move&, const Board&);
     MoveType isValidQueenMove(const Move&, const Board&);
     MoveType isValidKingMove(const Move&, const Board&);
+
+    bool isKingInCheck(const Board&, Side);
+    bool isAttackedBy(Square /**attacker square */, Square /** king square */, const Board&);
 }

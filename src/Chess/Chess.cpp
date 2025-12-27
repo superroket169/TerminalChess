@@ -18,7 +18,32 @@ Chess::BoardCoordinate Chess::Board::getEnPassantTarget() const { return enPassa
 
 Chess::MoveType Chess::MoveValidator(const Chess::Move& move, const Chess::Side& side, const Chess::Board& board)
 {
-    return Chess::MoveType::Valid;
+    Chess::MoveType type = isValidPieceMove(move, board);
+    if(type == Chess::MoveType::Invalid) return Chess::MoveType::Invalid;
+
+
+    Square fromSq = board.getSquare(move.getFrom().getCoordinate());
+    if(fromSq.getPieceSide() != side) return Chess::MoveType::Invalid;
+
+
+    Board tempBoard = board;
+    Chess::Piece pieceType = fromSq.getPieceType(); 
+
+    Square setSquareFrom = move.getFrom();
+    setSquareFrom.setPieceType(Chess::Piece::Empty);
+    setSquareFrom.setPieceSide(Chess::Side::None);
+    tempBoard.setSquare(setSquareFrom);
+    
+    Square setSquareTo = move.getTo();
+    
+    setSquareTo.setPieceType(pieceType); 
+    setSquareTo.setPieceSide(side);
+    
+    tempBoard.setSquare(setSquareTo);
+
+    if(isKingInCheck(tempBoard, side)) return Chess::MoveType::Invalid;
+
+    return type;
 }
 
 Chess::MoveType Chess::isValidPieceMove(const Move& move, const Board& board)
@@ -194,4 +219,19 @@ Chess::MoveType Chess::isValidQueenMove(const Move& move, const Board& board)
 Chess::MoveType Chess::isValidKingMove(const Move&, const Board&)
 {
     return Chess::MoveType::Valid;
+    /**
+     * other return positions: 
+     * - Chess::MoveType::KingsideCastling;
+     * - Chess::MoveType::QueensideCastling
+     */
+}
+
+bool Chess::isKingInCheck(const Board&, Side)
+{
+    return true;
+}
+
+bool Chess::isAttackedBy(Square /**attacker square */, Square /** king square */, const Board&)
+{
+    return true;
 }
