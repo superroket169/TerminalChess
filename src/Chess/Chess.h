@@ -23,6 +23,7 @@ namespace Chess
         {
             this->file = other.file;
             this->rank = other.rank;
+            return *this;
         }
 
         bool operator==(BoardCoordinate other)

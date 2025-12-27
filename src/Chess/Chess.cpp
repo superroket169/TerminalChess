@@ -97,15 +97,15 @@ Chess::MoveType Chess::isValidPieceMove(const Move& move, const Board& board)
 
     switch (currentPiece)
     {
-        case Piece::Pawn    : currentReturn = isValidPawnMove(move, board);
-        case Piece::Bishop  : currentReturn = isValidBishopMove(move, board);
-        case Piece::Knight  : currentReturn = isValidKnightMove(move, board);
-        case Piece::Rook    : currentReturn = isValidRookMove(move, board);
-        case Piece::Queen   : currentReturn = isValidQueenMove(move, board);
-        case Piece::King    : currentReturn = isValidKingMove(move, board);
+        case Piece::Pawn    : return isValidPawnMove(move, board);
+        case Piece::Bishop  : return isValidBishopMove(move, board);
+        case Piece::Knight  : return isValidKnightMove(move, board);
+        case Piece::Rook    : return isValidRookMove(move, board);
+        case Piece::Queen   : return isValidQueenMove(move, board);
+        case Piece::King    : return isValidKingMove(move, board);
     }
-    
-    return currentReturn;
+
+    return Chess::MoveType::Invalid;
 }
 
 Chess::MoveType Chess::isValidPawnMove(const Move& move, const Board& board)
@@ -209,11 +209,14 @@ Chess::MoveType Chess::isValidRookMove(const Move& move, const Board& board)
 
 Chess::MoveType Chess::isValidQueenMove(const Move& move, const Board& board)
 {
-    bool currentReturn = (bool)isValidRookMove(move, board) || (bool)isValidBishopMove(move, board);
-    if(!currentReturn) return MoveType::Invalid;
+    MoveType rookMove = isValidRookMove(move, board);
+    MoveType bishopMove = isValidBishopMove(move, board);
 
-    if(move.getTo().getPieceType() != Chess::Piece::Empty) return MoveType::Capture;
-    return MoveType::Valid;
+    if (rookMove != MoveType::Invalid) return rookMove;
+    
+    if (bishopMove != MoveType::Invalid) return bishopMove;
+
+    return MoveType::Invalid;
 }
 
 Chess::MoveType Chess::isValidKingMove(const Move&, const Board&)
@@ -228,10 +231,10 @@ Chess::MoveType Chess::isValidKingMove(const Move&, const Board&)
 
 bool Chess::isKingInCheck(const Board&, Side)
 {
-    return true;
+    return false;
 }
 
 bool Chess::isAttackedBy(Square /**attacker square */, Square /** king square */, const Board&)
 {
-    return true;
+    return false;
 }
