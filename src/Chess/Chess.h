@@ -1,0 +1,192 @@
+#pragma once
+#include <cstdint>
+#include <array>
+
+namespace Chess
+{
+    enum class File { A = 1, B, C, D, E, F, G, H };
+    enum class Rank { One = 1, Two, Three, Four, Five, Six, Seven, Eight };
+    
+    enum class Piece { Empty = 0, Pawn, Knight, Bishop, Rook, Queen, King }; 
+    enum class Side { None = -1, White, Black };
+
+    struct BoardCoordinate
+    {
+        File file;
+        Rank rank;
+
+        BoardCoordinate(File f = File::A, Rank r = Rank::One) : file(f), rank(r) {}
+    };
+
+    class Square
+    {
+    public:
+        // Default constructor gerekli olabilir (std::array için), dummy değerlerle ekliyoruz
+        Square() : 
+            pieceSide(Side::None), 
+            pieceType(Piece::Empty), 
+            coordinate(BoardCoordinate(File::A, Rank::One)) {}
+
+        Square(BoardCoordinate coordinate, Piece pieceType, Side pieceSide) : 
+            pieceSide(pieceSide), 
+            pieceType(pieceType), 
+            coordinate(coordinate) {}
+
+        BoardCoordinate getCoordinate() const;
+        Piece getPieceType() const;
+        Side getPieceSide() const;
+
+        BoardCoordinate setCoordinate(BoardCoordinate); // void dönüş tipine çevrildi (setter mantığı)
+        Piece setPieceType(Piece);
+        Side setPieceSide(Side);
+
+    private:
+        BoardCoordinate coordinate;
+        Piece pieceType;
+        Side pieceSide;
+    };
+
+    // Yandan bakış (Sideways) formatı: Outer Index = File, Inner Index = Rank
+    // 0. indeksler (Padding) boş bırakıldı.
+    // Görsel Düzen: [File][Rank] -> Sol taraf 1. Rank (White), Sağ taraf 8. Rank (Black)
+    const std::array<std::array<Square, 9>, 9> defaultBoardMatris = 
+    {
+        // Index 0: Dummy Row
+        std::array<Square, 9>{}, 
+
+        // Index 1: File A
+        std::array<Square, 9>{
+            Square(),
+            Square(BoardCoordinate(File::A, Rank::One),   Piece::Rook,  Side::White),
+            Square(BoardCoordinate(File::A, Rank::Two),   Piece::Pawn,  Side::White),
+            Square(BoardCoordinate(File::A, Rank::Three), Piece::Empty, Side::None),
+            Square(BoardCoordinate(File::A, Rank::Four),  Piece::Empty, Side::None),
+            Square(BoardCoordinate(File::A, Rank::Five),  Piece::Empty, Side::None),
+            Square(BoardCoordinate(File::A, Rank::Six),   Piece::Empty, Side::None),
+            Square(BoardCoordinate(File::A, Rank::Seven), Piece::Pawn,  Side::Black),
+            Square(BoardCoordinate(File::A, Rank::Eight), Piece::Rook,  Side::Black)
+        },
+
+        // Index 2: File B
+        std::array<Square, 9>{
+            Square(),
+            Square(BoardCoordinate(File::B, Rank::One),   Piece::Knight, Side::White),
+            Square(BoardCoordinate(File::B, Rank::Two),   Piece::Pawn,   Side::White),
+            Square(BoardCoordinate(File::B, Rank::Three), Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::B, Rank::Four),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::B, Rank::Five),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::B, Rank::Six),   Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::B, Rank::Seven), Piece::Pawn,   Side::Black),
+            Square(BoardCoordinate(File::B, Rank::Eight), Piece::Knight, Side::Black)
+        },
+
+        // Index 3: File C
+        std::array<Square, 9>{
+            Square(),
+            Square(BoardCoordinate(File::C, Rank::One),   Piece::Bishop, Side::White),
+            Square(BoardCoordinate(File::C, Rank::Two),   Piece::Pawn,   Side::White),
+            Square(BoardCoordinate(File::C, Rank::Three), Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::C, Rank::Four),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::C, Rank::Five),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::C, Rank::Six),   Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::C, Rank::Seven), Piece::Pawn,   Side::Black),
+            Square(BoardCoordinate(File::C, Rank::Eight), Piece::Bishop, Side::Black)
+        },
+
+        // Index 4: File D
+        std::array<Square, 9>{
+            Square(),
+            Square(BoardCoordinate(File::D, Rank::One),   Piece::Queen,  Side::White),
+            Square(BoardCoordinate(File::D, Rank::Two),   Piece::Pawn,   Side::White),
+            Square(BoardCoordinate(File::D, Rank::Three), Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::D, Rank::Four),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::D, Rank::Five),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::D, Rank::Six),   Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::D, Rank::Seven), Piece::Pawn,   Side::Black),
+            Square(BoardCoordinate(File::D, Rank::Eight), Piece::Queen,  Side::Black)
+        },
+
+        // Index 5: File E
+        std::array<Square, 9>{
+            Square(),
+            Square(BoardCoordinate(File::E, Rank::One),   Piece::King,   Side::White),
+            Square(BoardCoordinate(File::E, Rank::Two),   Piece::Pawn,   Side::White),
+            Square(BoardCoordinate(File::E, Rank::Three), Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::E, Rank::Four),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::E, Rank::Five),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::E, Rank::Six),   Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::E, Rank::Seven), Piece::Pawn,   Side::Black),
+            Square(BoardCoordinate(File::E, Rank::Eight), Piece::King,   Side::Black)
+        },
+
+        // Index 6: File F
+        std::array<Square, 9>
+        {
+            Square(),
+            Square(BoardCoordinate(File::F, Rank::One),   Piece::Bishop, Side::White),
+            Square(BoardCoordinate(File::F, Rank::Two),   Piece::Pawn,   Side::White),
+            Square(BoardCoordinate(File::F, Rank::Three), Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::F, Rank::Four),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::F, Rank::Five),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::F, Rank::Six),   Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::F, Rank::Seven), Piece::Pawn,   Side::Black),
+            Square(BoardCoordinate(File::F, Rank::Eight), Piece::Bishop, Side::Black)
+        },
+
+        // Index 7: File G
+        std::array<Square, 9>
+        {
+            Square(),
+            Square(BoardCoordinate(File::G, Rank::One),   Piece::Knight, Side::White),
+            Square(BoardCoordinate(File::G, Rank::Two),   Piece::Pawn,   Side::White),
+            Square(BoardCoordinate(File::G, Rank::Three), Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::G, Rank::Four),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::G, Rank::Five),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::G, Rank::Six),   Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::G, Rank::Seven), Piece::Pawn,   Side::Black),
+            Square(BoardCoordinate(File::G, Rank::Eight), Piece::Knight, Side::Black)
+        },
+
+        // Index 8: File H
+        std::array<Square, 9>
+        {
+            Square(),
+            Square(BoardCoordinate(File::H, Rank::One),   Piece::Rook,   Side::White),
+            Square(BoardCoordinate(File::H, Rank::Two),   Piece::Pawn,   Side::White),
+            Square(BoardCoordinate(File::H, Rank::Three), Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::H, Rank::Four),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::H, Rank::Five),  Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::H, Rank::Six),   Piece::Empty,  Side::None),
+            Square(BoardCoordinate(File::H, Rank::Seven), Piece::Pawn,   Side::Black),
+            Square(BoardCoordinate(File::H, Rank::Eight), Piece::Rook,   Side::Black)
+        }
+    };
+
+    class Board
+    {
+    public:
+        Board() : boardMatris(defaultBoardMatris) {}
+
+        Square getSquare(BoardCoordinate) const;
+        Square setSquare(Square);
+
+    private:
+        std::array<std::array<Square, 9>, 9> boardMatris;
+    };
+
+    class Move
+    {
+    public:
+        Move() = default;
+        Move(Square from, Square to) : from(from), to(to) {}
+
+        Square getFrom() const { return from; }
+        Square getTo() const { return to; }
+
+    private:
+        Square from;
+        Square to;
+    };
+
+    bool MoveValidator(const Move&, const Side&, const Board&);
+}
