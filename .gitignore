@@ -2,3 +2,4 @@
 *.exe
 build/
 test.cpp
+Game.cpp

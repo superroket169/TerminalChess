@@ -49,7 +49,7 @@ namespace Chess
             pieceType(pieceType), 
             coordinate(coordinate) {}
 
-        BoardCoordinate Square::getCoordinate() const { return coordinate; }
+        BoardCoordinate getCoordinate() const { return coordinate; }
         Piece getPieceType() const { return pieceType; }
         Side getPieceSide() const { return pieceSide; }
 
@@ -200,7 +200,7 @@ namespace Chess
         bool setQueenRookMoved(Side side, bool b) { return ((side == Side::White) ? whiteQueenRookMoved : blackQueenRookMoved) = b; }
 
         Side getTurn() const { return turn; }
-        Side passTurn() { return turn = (turn == Side::White ? Side::Black : Side::Black); }
+        Side passTurn() { return turn = (turn == Side::White ? Side::Black : Side::White); }
 
     private:
         std::array<std::array<Square, 9>, 9> boardMatris;

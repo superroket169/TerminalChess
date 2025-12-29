@@ -209,16 +209,19 @@ Chess::MoveType Chess::isValidQueenMove(const Move& move, const Board& board)
 
 Chess::MoveType Chess::isValidKingMove(const Move& move, const Board& board)
 {
-    Side currentSide = move.getFrom().getPieceSide();
+    // direk board dan almak denendi
+    Square fromSq = board.getSquare(move.getFrom().getCoordinate());
+    Side currentSide = fromSq.getPieceSide();
+    
     Side enemySide = (currentSide == Side::White) ? Side::Black : Side::White;
 
     int fromRank = (int)move.getFrom().getCoordinate().rank;
-    int fromFile = (int)move.getFrom().getCoordinate().file;
     int toRank   = (int)move.getTo().getCoordinate().rank;
     int toFile   = (int)move.getTo().getCoordinate().file;
 
     int deltaRank = std::abs(toRank - fromRank);
-    int deltaFile = std::abs(toFile - fromFile);
+    int fromFileVal = (int)move.getFrom().getCoordinate().file;
+    int deltaFile = std::abs(toFile - fromFileVal);
 
     /**
      * normal hareket
@@ -235,19 +238,14 @@ Chess::MoveType Chess::isValidKingMove(const Move& move, const Board& board)
      */
     if (deltaFile == 2 && deltaRank == 0)
     {
-        // ilk olarak: şah daha önce oynadı mı:
         if (board.isKingMoved(currentSide)) return MoveType::Invalid;
 
-        // şu an şah çekiliyor mu:
         if (isSquareAttacked(move.getFrom().getCoordinate(), enemySide, board)) return MoveType::Invalid;
 
-        // KingsideCastle
         if (toFile == 7)
         {
-            // kingRook oynanmışlık kontrolü:
             if (board.isKingRookMoved(currentSide)) return MoveType::Invalid;
 
-            // araların boşluluk kontrolü:
             if (board.getSquare({(File)6, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // F
             if (board.getSquare({(File)7, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // G
 
@@ -256,13 +254,10 @@ Chess::MoveType Chess::isValidKingMove(const Move& move, const Board& board)
             return MoveType::KingsideCastling;
         }
 
-        // QueensideCastling
         if (toFile == 3)
         {
-            // kingRook oynanmışlık kontrolü:
             if (board.isQueenRookMoved(currentSide)) return MoveType::Invalid;
 
-            // araların boşluluk kontrolü:
             if (board.getSquare({(File)4, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // D
             if (board.getSquare({(File)3, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // C
             if (board.getSquare({(File)2, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // B
@@ -440,16 +435,9 @@ bool Chess::isKingInCheck(const Board& board, Side side)
 Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
 {
     Chess::MoveType moveType = MoveValidator(move, board.getTurn(), board);
-    if(moveType == MoveType::Invalid || moveType == MoveType::inCheck) return MoveType::Invalid;
-
-    // MoveType::Valid; //
-    // MoveType::Capture; //
-    // MoveType::DoublePush; //
-    // MoveType::QueensideCastling;
-    // MoveType::KingsideCastling;
-    // MoveType::PawnCapture; //
-    // MoveType::EnPassant;
-    // MoveType::Promotion;
+    
+    if(moveType == MoveType::Invalid || moveType == MoveType::inCheck) 
+        return MoveType::Invalid;
 
     Piece movingPiece = board.getSquare(move.getFrom().getCoordinate()).getPieceType();
     Side movingSide = board.getSquare(move.getFrom().getCoordinate()).getPieceSide();
@@ -462,36 +450,35 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
     setToSquare.setPieceType(movingPiece);
     setToSquare.setPieceSide(movingSide);
 
-
-    if(moveType == MoveType::Valid || moveType == MoveType::Capture || moveType == MoveType::DoublePush || moveType == MoveType::PawnCapture)
+    if(moveType == MoveType::Valid || 
+       moveType == MoveType::Capture || 
+       moveType == MoveType::DoublePush || 
+       moveType == MoveType::PawnCapture)
     {
         board.setSquare(setFromSquare);
         board.setSquare(setToSquare);
-
         return moveType;
     }
 
     if(moveType == MoveType::QueensideCastling)
     {
-        // king
         board.setSquare(setFromSquare);
         board.setSquare(setToSquare);
 
-        int rank = (side == Side::White) ? 0 : 7;
+        int rankIdx = (side == Side::White) ? 0 : 7;
+        
+        Rank r = (side == Side::White) ? Rank::One : Rank::Eight;
 
-        // old rook coord
         Square rookOldSquare;
-        rookOldSquare.setCoordinate({(File)0, (Rank)rank}); 
+        rookOldSquare.setCoordinate({File::A, r}); 
         rookOldSquare.setPieceType(Piece::Empty);
         rookOldSquare.setPieceSide(Side::None);
 
-        // new rook coord
         Square rookNewSquare;
-        rookNewSquare.setCoordinate({(File)3, (Rank)rank});
+        rookNewSquare.setCoordinate({File::D, r});
         rookNewSquare.setPieceType(Piece::Rook);
         rookNewSquare.setPieceSide(side);
 
-        // rook
         board.setSquare(rookOldSquare);
         board.setSquare(rookNewSquare);
 
@@ -500,35 +487,26 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
 
     if(moveType == MoveType::KingsideCastling)
     {
-        // king
         board.setSquare(setFromSquare);
         board.setSquare(setToSquare);
-        int rank = (side == Side::White) ? 0 : 7;
+        
+        Rank r = (side == Side::White) ? Rank::One : Rank::Eight;
 
-        // old rook square
         Square rookOldSquare;        
-        rookOldSquare.setCoordinate({(File)7, (Rank)rank});
+        rookOldSquare.setCoordinate({File::H, r});
         rookOldSquare.setPieceType(Piece::Empty);
         rookOldSquare.setPieceSide(Side::None);
 
-        // new rook square
         Square rookNewSquare;
-        rookNewSquare.setCoordinate({(File)5, (Rank)rank});
+        rookNewSquare.setCoordinate({File::F, r});
         rookNewSquare.setPieceType(Piece::Rook);
         rookNewSquare.setPieceSide(side);
 
-        // rook
         board.setSquare(rookOldSquare);
         board.setSquare(rookNewSquare);
 
         return moveType;
     }
 
-    /**
-     * @todo bazı geri dönüş tipi ve bunların hamleleri eklenmedi:
-     * - promotion
-     * - enpassant
-     */
-
-
+    return moveType; 
 }
