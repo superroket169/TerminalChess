@@ -221,55 +221,6 @@ Chess::MoveType Chess::isValidQueenMove(const Move& move, const Board& board)
 
 Chess::MoveType Chess::isValidKingMove(const Move& move, const Board& board)
 {
-    Side currentPieceType = move.getFrom().getPieceSide();
-
-    int fromRank = (int)move.getFrom().getCoordinate().rank;
-    int fromFile = (int)move.getFrom().getCoordinate().file;
-    int toRank   = (int)move.getTo().getCoordinate().rank;
-    int toFile   = (int)move.getTo().getCoordinate().file;
-
-    int deltaRank = std::abs(toRank - fromRank);
-    int deltaFile = std::abs(toFile - fromFile);
-
-    /**
-     * normal kontrol
-     */
-    if(deltaFile == 1 && deltaRank == 1) return Chess::MoveType::Valid;
-    
-    /**
-     * rok hareketi
-     */
-    if((deltaFile == 2 || deltaFile == 3) && deltaRank == 0)
-    {
-        if(!board.isKingMoved(currentPieceType))
-        {
-            if(toFile == 7 && !board.isKingRookMoved(currentPieceType))
-            {
-                /**
-                 * şahı hareket ettirip smilasyon ile (isKingInCheck ile olabilir) şu anda şah çekiliyormu & şah ile kale arasındaki kareyi bir taş görüyor mu
-                 */
-                return Chess::MoveType::KingsideCastling;
-            }
-            if(toFile == 3 && !board.isQueenRookMoved(currentPieceType))
-            {
-                /**
-                 * şahı hareket ettirip smilasyon ile (isKingInCheck ile olabilir) şu anda şah çekiliyormu & şah ile kale arasındaki kareyi bir taş görüyor mu
-                 */
-                return Chess::MoveType::QueensideCastling;
-            }
-        }
-    }
-    return Chess::MoveType::Invalid;
-
-    /**
-     * other return positions: 
-     * - Chess::MoveType::KingsideCastling;
-     * - Chess::MoveType::QueensideCastling
-     */
-}
-
-Chess::MoveType Chess::isValidKingMove(const Move& move, const Board& board)
-{
     Side currentSide = move.getFrom().getPieceSide();
     Side enemySide = (currentSide == Side::White) ? Side::Black : Side::White;
 
@@ -335,11 +286,6 @@ Chess::MoveType Chess::isValidKingMove(const Move& move, const Board& board)
     }
 
     return MoveType::Invalid;
-}
-
-bool Chess::isAttackedBy(Square /**attacker tmpSquareuare */, Square /** king tmpSquareuare */, const Board&)
-{
-    return false;
 }
 
 bool Chess::isSquareAttacked(BoardCoordinate target, Side attackerSide, const Board& board)
@@ -473,4 +419,32 @@ bool Chess::isSquareAttacked(BoardCoordinate target, Side attackerSide, const Bo
     }
 
     return false;
+}
+
+bool Chess::isKingInCheck(const Board& board, Side side)
+{
+    BoardCoordinate kingPos;
+    bool found = false;
+
+    // şahı bulma:
+    for (int r = 1; r <= 8; ++r)
+    {
+        for (int f = 1; f <= 8; ++f)
+        {
+            Square sq = board.getSquare({(File)f, (Rank)r});
+            if (sq.getPieceType() == Piece::King && sq.getPieceSide() == side)
+            {
+                kingPos = {(File)f, (Rank)r};
+                found = true;
+                break;
+            }
+        }
+        if (found) break;
+    }
+
+    // şah yoksa false (testler için).
+    if (!found) return false;
+
+    Side enemySide = (side == Side::White) ? Side::Black : Side::White;
+    return isSquareAttacked(kingPos, enemySide, board);
 }
