@@ -50,13 +50,13 @@ namespace Chess
             pieceType(pieceType), 
             coordinate(coordinate) {}
 
-        BoardCoordinate getCoordinate() const;
-        Piece getPieceType() const;
-        Side getPieceSide() const;
+        BoardCoordinate Square::getCoordinate() const { return coordinate; }
+        Piece getPieceType() const { return pieceType; }
+        Side getPieceSide() const { return pieceSide; }
 
-        BoardCoordinate setCoordinate(BoardCoordinate); // void dönüş tipine çevrildi (setter mantığı)
-        Piece setPieceType(Piece);
-        Side setPieceSide(Side);
+        BoardCoordinate setCoordinate(Chess::BoardCoordinate nw) { return coordinate = nw; }
+        Piece setPieceType(Chess::Piece nw) { return pieceType = nw; }
+        Side setPieceSide(Chess::Side nw) { return pieceSide = nw; }
 
     private:
         BoardCoordinate coordinate;
@@ -188,23 +188,32 @@ namespace Chess
         Square getSquare(BoardCoordinate) const;
         Square setSquare(Square);
 
-        void setEnPassantTarget(BoardCoordinate);
-        BoardCoordinate getEnPassantTarget() const;
-        void clearEnPassantTarget();
+        void setEnPassantTarget(BoardCoordinate coord) { enPassantTarget = coord; }
+        void clearEnPassantTarget() { enPassantTarget = {(File) -1, (Rank)(-1)}; }
+        BoardCoordinate getEnPassantTarget() const { return enPassantTarget; }
+
+        bool isKingMoved(Side side) const { return (side == Side::White) ? whiteKingMoved : blackKingMoved; }
+        bool isKingRookMoved(Side side) const { return (side == Side::White) ? whiteKingRookMoved : blackKingRookMoved; }
+        bool isQueenRookMoved(Side side) const { return (side == Side::White) ? whiteQueenRookMoved : blackQueenRookMoved; }
+
+        bool setKingMoved(Side side, bool b) { return ((side == Side::White) ? whiteKingMoved : blackKingMoved) = b; }
+        bool setKingRookMoved(Side side, bool b) { return ((side == Side::White) ? whiteKingRookMoved : blackKingRookMoved) = b; }
+        bool setQueenRookMoved(Side side, bool b) { return ((side == Side::White) ? whiteQueenRookMoved : blackQueenRookMoved) = b; }
 
     private:
         std::array<std::array<Square, 9>, 9> boardMatris;
 
-        BoardCoordinate enPassantTarget = {(File) -1,(Rank) -1 };
+        BoardCoordinate enPassantTarget = {(File) -1, (Rank) -1};
 
+        // fixed naming:
         bool whiteKingMoved = false;
         bool blackKingMoved = false;
-        
-        bool whiteRookLeftMoved = false;  // a1 kalesi
-        bool whiteRookRightMoved = false; // h1 kalesi
 
-        bool blackRookLeftMoved = false;  // a8 kalesi
-        bool blackRookRightMoved = false; // h8 kalesi
+        bool whiteKingRookMoved = false;  // h1 rook
+        bool whiteQueenRookMoved = false; // a1 rook
+
+        bool blackKingRookMoved = false;  // h8 rook
+        bool blackQueenRookMoved = false; // a8 rook
     };
 
     class Move
@@ -238,6 +247,5 @@ namespace Chess
     MoveType isValidKingMove(const Move&, const Board&);
 
     bool isKingInCheck(const Board&, Side);
-    bool isAttackedBy(Square /**attacker square */, Square /** king square */, const Board&);
-    bool Chess::isSquareAttacked(BoardCoordinate, Side, const Board&);
+    bool isSquareAttacked(BoardCoordinate, Side, const Board&);
 }
