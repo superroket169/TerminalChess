@@ -451,8 +451,17 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
     // MoveType::EnPassant;
     // MoveType::Promotion;
 
-    Square setFromSquare = move.getFrom(); setFromSquare.setPieceType(Piece::Empty); setFromSquare.setPieceSide(Side::None);
-    Square setToSquare = move.getTo(); setToSquare.setPieceType(Piece::Empty); setToSquare.setPieceSide(Side::None);
+    Piece movingPiece = board.getSquare(move.getFrom().getCoordinate()).getPieceType();
+    Side movingSide = board.getSquare(move.getFrom().getCoordinate()).getPieceSide();
+
+    Square setFromSquare = move.getFrom();
+    setFromSquare.setPieceType(Piece::Empty);
+    setFromSquare.setPieceSide(Side::None);
+
+    Square setToSquare = move.getTo();
+    setToSquare.setPieceType(movingPiece);
+    setToSquare.setPieceSide(movingSide);
+
 
     if(moveType == MoveType::Valid || moveType == MoveType::Capture || moveType == MoveType::DoublePush || moveType == MoveType::PawnCapture)
     {
@@ -464,17 +473,62 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
 
     if(moveType == MoveType::QueensideCastling)
     {
-        /**
-         * 
-         */
+        // king
+        board.setSquare(setFromSquare);
+        board.setSquare(setToSquare);
+
+        int rank = (side == Side::White) ? 0 : 7;
+
+        // old rook coord
+        Square rookOldSquare;
+        rookOldSquare.setCoordinate({(File)0, (Rank)rank}); 
+        rookOldSquare.setPieceType(Piece::Empty);
+        rookOldSquare.setPieceSide(Side::None);
+
+        // new rook coord
+        Square rookNewSquare;
+        rookNewSquare.setCoordinate({(File)3, (Rank)rank});
+        rookNewSquare.setPieceType(Piece::Rook);
+        rookNewSquare.setPieceSide(side);
+
+        // rook
+        board.setSquare(rookOldSquare);
+        board.setSquare(rookNewSquare);
+
+        return moveType;
     }
 
     if(moveType == MoveType::KingsideCastling)
     {
-        /**
-         * 
-         */
+        // king
+        board.setSquare(setFromSquare);
+        board.setSquare(setToSquare);
+        int rank = (side == Side::White) ? 0 : 7;
+
+        // old rook square
+        Square rookOldSquare;        
+        rookOldSquare.setCoordinate({(File)7, (Rank)rank});
+        rookOldSquare.setPieceType(Piece::Empty);
+        rookOldSquare.setPieceSide(Side::None);
+
+        // new rook square
+        Square rookNewSquare;
+        rookNewSquare.setCoordinate({(File)5, (Rank)rank});
+        rookNewSquare.setPieceType(Piece::Rook);
+        rookNewSquare.setPieceSide(side);
+
+        // rook
+        board.setSquare(rookOldSquare);
+        board.setSquare(rookNewSquare);
+
+        return moveType;
     }
+
+    /**
+     * @todo bazı geri dönüş tipi ve bunların hamleleri eklenmedi:
+     * - promotion
+     * - enpassant
+     */
 
 
 }
