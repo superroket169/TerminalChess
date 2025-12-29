@@ -163,10 +163,10 @@ Chess::MoveType Chess::isValidKnightMove(const Move& move, const Board& board)
     int toRank   = (int)move.getTo().getCoordinate().rank;
     int toFile   = (int)move.getTo().getCoordinate().file;
 
-    int dRank = std::abs(toRank - fromRank);
-    int dFile = std::abs(toFile - fromFile);
+    int deltaRank = std::abs(toRank - fromRank);
+    int deltaFile = std::abs(toFile - fromFile);
 
-    bool currentReturn = (dRank == 2 && dFile == 1) || (dRank == 1 && dFile == 2);
+    bool currentReturn = (deltaRank == 2 && deltaFile == 1) || (deltaRank == 1 && deltaFile == 2);
     if(!currentReturn) return MoveType::Invalid;
 
     if(move.getTo().getPieceType() != Chess::Piece::Empty) return MoveType::Capture;
@@ -180,10 +180,10 @@ Chess::MoveType Chess::isValidBishopMove(const Move& move, const Board& board)
     int toRank   = (int)move.getTo().getCoordinate().rank;
     int toFile   = (int)move.getTo().getCoordinate().file;
 
-    int dRank = std::abs(toRank - fromRank);
-    int dFile = std::abs(toFile - fromFile);
+    int deltaRank = std::abs(toRank - fromRank);
+    int deltaFile = std::abs(toFile - fromFile);
 
-    bool currentReturn = (dRank == dFile);
+    bool currentReturn = (deltaRank == deltaFile);
     if(!currentReturn) return MoveType::Invalid;
 
     if(move.getTo().getPieceType() != Chess::Piece::Empty) return MoveType::Capture;
@@ -197,10 +197,10 @@ Chess::MoveType Chess::isValidRookMove(const Move& move, const Board& board)
     int toRank   = (int)move.getTo().getCoordinate().rank;
     int toFile   = (int)move.getTo().getCoordinate().file;
 
-    int dRank = std::abs(toRank - fromRank);
-    int dFile = std::abs(toFile - fromFile);
+    int deltaRank = std::abs(toRank - fromRank);
+    int deltaFile = std::abs(toFile - fromFile);
 
-    bool currentReturn = (dRank == 0 || dFile == 0);
+    bool currentReturn = (deltaRank == 0 || deltaFile == 0);
     if(!currentReturn) return MoveType::Invalid;
 
     if(move.getTo().getPieceType() != Chess::Piece::Empty) return MoveType::Capture;
@@ -219,9 +219,48 @@ Chess::MoveType Chess::isValidQueenMove(const Move& move, const Board& board)
     return MoveType::Invalid;
 }
 
-Chess::MoveType Chess::isValidKingMove(const Move&, const Board&)
+Chess::MoveType Chess::isValidKingMove(const Move& move, const Board& board)
 {
-    return Chess::MoveType::Valid;
+    Side currentPieceType = move.getFrom().getPieceSide();
+
+    int fromRank = (int)move.getFrom().getCoordinate().rank;
+    int fromFile = (int)move.getFrom().getCoordinate().file;
+    int toRank   = (int)move.getTo().getCoordinate().rank;
+    int toFile   = (int)move.getTo().getCoordinate().file;
+
+    int deltaRank = std::abs(toRank - fromRank);
+    int deltaFile = std::abs(toFile - fromFile);
+
+    /**
+     * normal kontrol
+     */
+    if(deltaFile == 1 && deltaRank == 1) return Chess::MoveType::Valid;
+    
+    /**
+     * rok hareketi
+     */
+    if((deltaFile == 2 || deltaFile == 3) && deltaRank == 0)
+    {
+        if(!board.isKingMoved(currentPieceType))
+        {
+            if(toFile == 7 && !board.isKingRookMoved(currentPieceType))
+            {
+                /**
+                 * şahı hareket ettirip smilasyon ile (isKingInCheck ile olabilir) şu anda şah çekiliyormu & şah ile kale arasındaki kareyi bir taş görüyor mu
+                 */
+                return Chess::MoveType::KingsideCastling;
+            }
+            if(toFile == 3 && !board.isQueenRookMoved(currentPieceType))
+            {
+                /**
+                 * şahı hareket ettirip smilasyon ile (isKingInCheck ile olabilir) şu anda şah çekiliyormu & şah ile kale arasındaki kareyi bir taş görüyor mu
+                 */
+                return Chess::MoveType::QueensideCastling;
+            }
+        }
+    }
+    return Chess::MoveType::Invalid;
+
     /**
      * other return positions: 
      * - Chess::MoveType::KingsideCastling;
@@ -229,40 +268,75 @@ Chess::MoveType Chess::isValidKingMove(const Move&, const Board&)
      */
 }
 
-/**
- * yapılacaklar : 
- * - şahın konumunu bul (side a göre)
- * - tüm tahtadaki herhangi bir taşın şaha gidebilip gidemediğini kontrol et
- * - - gidebiliyorsa return true
- * - - yoksa false
- */
-bool Chess::isKingInCheck(const Board& board, Side side)
+Chess::MoveType Chess::isValidKingMove(const Move& move, const Board& board)
 {
-    BoardCoordinate kingPos;
-    bool found = false;
+    Side currentSide = move.getFrom().getPieceSide();
+    Side enemySide = (currentSide == Side::White) ? Side::Black : Side::White;
 
-    // şahı bulma:
-    for (int r = 1; r <= 8; ++r)
+    int fromRank = (int)move.getFrom().getCoordinate().rank;
+    int fromFile = (int)move.getFrom().getCoordinate().file;
+    int toRank   = (int)move.getTo().getCoordinate().rank;
+    int toFile   = (int)move.getTo().getCoordinate().file;
+
+    int deltaRank = std::abs(toRank - fromRank);
+    int deltaFile = std::abs(toFile - fromFile);
+
+    /**
+     * normal hareket
+     */
+    if (deltaFile <= 1 && deltaRank <= 1) 
     {
-        for (int f = 1; f <= 8; ++f)
+        return (board.getSquare(move.getTo().getCoordinate()).getPieceType() != Piece::Empty) 
+               ? MoveType::Capture 
+               : MoveType::Valid;
+    }
+    
+    /**
+     * rok kontrolleri:
+     */
+    if (deltaFile == 2 && deltaRank == 0)
+    {
+        // ilk olarak: şah daha önce oynadı mı:
+        if (board.isKingMoved(currentSide)) return MoveType::Invalid;
+
+        // şu an şah çekiliyor mu:
+        if (isSquareAttacked(move.getFrom().getCoordinate(), enemySide, board)) return MoveType::Invalid;
+
+        // KingsideCastle
+        if (toFile == 7)
         {
-            Square sq = board.getSquare({(File)f, (Rank)r});
-            if (sq.getPieceType() == Piece::King && sq.getPieceSide() == side)
-            {
-                kingPos = {(File)f, (Rank)r};
-                found = true;
-                break;
-            }
+            // kingRook oynanmışlık kontrolü:
+            if (board.isKingRookMoved(currentSide)) return MoveType::Invalid;
+
+            // araların boşluluk kontrolü:
+            if (board.getSquare({(File)6, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // F
+            if (board.getSquare({(File)7, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // G
+
+            if (isSquareAttacked({(File)6, (Rank)fromRank}, enemySide, board)) return MoveType::Invalid;
+
+            return MoveType::KingsideCastling;
         }
-        if (found) break;
+
+        // QueensideCastling
+        if (toFile == 3)
+        {
+            // kingRook oynanmışlık kontrolü:
+            if (board.isQueenRookMoved(currentSide)) return MoveType::Invalid;
+
+            // araların boşluluk kontrolü:
+            if (board.getSquare({(File)4, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // D
+            if (board.getSquare({(File)3, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // C
+            if (board.getSquare({(File)2, (Rank)fromRank}).getPieceType() != Piece::Empty) return MoveType::Invalid; // B
+
+            if (isSquareAttacked({(File)4, (Rank)fromRank}, enemySide, board)) return MoveType::Invalid;
+
+            return MoveType::QueensideCastling;
+        }
     }
 
-    // şah yoksa false (testler için).
-    if (!found) return false;
-
-    Side enemySide = (side == Side::White) ? Side::Black : Side::White;
-    return isSquareAttacked(kingPos, enemySide, board);
+    return MoveType::Invalid;
 }
+
 bool Chess::isAttackedBy(Square /**attacker tmpSquareuare */, Square /** king tmpSquareuare */, const Board&)
 {
     return false;
