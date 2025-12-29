@@ -39,7 +39,6 @@ namespace Chess
     class Square
     {
     public:
-        // Default constructor gerekli olabilir (std::array için), dummy değerlerle ekliyoruz
         Square() : 
             pieceSide(Side::None), 
             pieceType(Piece::Empty), 
@@ -200,6 +199,9 @@ namespace Chess
         bool setKingRookMoved(Side side, bool b) { return ((side == Side::White) ? whiteKingRookMoved : blackKingRookMoved) = b; }
         bool setQueenRookMoved(Side side, bool b) { return ((side == Side::White) ? whiteQueenRookMoved : blackQueenRookMoved) = b; }
 
+        Side getTurn() const { return turn; }
+        Side passTurn() { return turn = (turn == Side::White ? Side::Black : Side::Black); }
+
     private:
         std::array<std::array<Square, 9>, 9> boardMatris;
 
@@ -214,6 +216,8 @@ namespace Chess
 
         bool blackKingRookMoved = false;  // h8 rook
         bool blackQueenRookMoved = false; // a8 rook
+
+        Side turn = Side::White;
     };
 
     class Move
@@ -245,6 +249,8 @@ namespace Chess
     MoveType isValidRookMove(const Move&, const Board&);
     MoveType isValidQueenMove(const Move&, const Board&);
     MoveType isValidKingMove(const Move&, const Board&);
+    
+    MoveType makeMove(Move, Side, Board&);
 
     bool isKingInCheck(const Board&, Side);
     bool isSquareAttacked(BoardCoordinate, Side, const Board&);

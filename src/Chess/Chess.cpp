@@ -436,3 +436,45 @@ bool Chess::isKingInCheck(const Board& board, Side side)
     Side enemySide = (side == Side::White) ? Side::Black : Side::White;
     return isSquareAttacked(kingPos, enemySide, board);
 }
+
+Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
+{
+    Chess::MoveType moveType = MoveValidator(move, board.getTurn(), board);
+    if(moveType == MoveType::Invalid || moveType == MoveType::inCheck) return MoveType::Invalid;
+
+    // MoveType::Valid; //
+    // MoveType::Capture; //
+    // MoveType::DoublePush; //
+    // MoveType::QueensideCastling;
+    // MoveType::KingsideCastling;
+    // MoveType::PawnCapture; //
+    // MoveType::EnPassant;
+    // MoveType::Promotion;
+
+    Square setFromSquare = move.getFrom(); setFromSquare.setPieceType(Piece::Empty); setFromSquare.setPieceSide(Side::None);
+    Square setToSquare = move.getTo(); setToSquare.setPieceType(Piece::Empty); setToSquare.setPieceSide(Side::None);
+
+    if(moveType == MoveType::Valid || moveType == MoveType::Capture || moveType == MoveType::DoublePush || moveType == MoveType::PawnCapture)
+    {
+        board.setSquare(setFromSquare);
+        board.setSquare(setToSquare);
+
+        return moveType;
+    }
+
+    if(moveType == MoveType::QueensideCastling)
+    {
+        /**
+         * 
+         */
+    }
+
+    if(moveType == MoveType::KingsideCastling)
+    {
+        /**
+         * 
+         */
+    }
+
+
+}
