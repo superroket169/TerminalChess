@@ -238,30 +238,31 @@ Chess::MoveType Chess::isValidKingMove(const Move&, const Board&)
  */
 bool Chess::isKingInCheck(const Board& board, Side side)
 {
-    //BoardCoordinate kingCoordinate;
-    //for(size_t i = 1; i <= 8; ++i)
-    //{
-    //    for(size_t j = 1; j <= 8; ++j)
-    //    {
-    //        if(board.getSquare({(File)i, (Rank)j}).getPieceSide() == side 
-    //        && board.getSquare({(File)i, (Rank)j}).getPieceType() == Chess::Piece::King) kingCoordinate = {(File)i, (Rank)j};
-    //    }
-    //}
-//
-    //Square tmpTo(kingCoordinate, Chess::Piece::King, side);
-    //for(size_t i = 1; i <= 8; ++i)
-    //{
-    //    for(size_t j = 1; j <= 8; ++j)
-    //    {
-    //        Square tmpFrom({(File)i, (Rank)j}, board.getSquare({(File)i, (Rank)j}).getPieceType(), board.getSquare({(File)i, (Rank)j}).getPieceSide());
-    //        Move tmpMove(tmpFrom, tmpTo);
-    //        if(isValidPieceMove(tmpMove, board) != Chess::MoveType::Invalid) return true;
-    //    }
-    //}
+    BoardCoordinate kingPos;
+    bool found = false;
 
-    return false;
+    // şahı bulma:
+    for (int r = 1; r <= 8; ++r)
+    {
+        for (int f = 1; f <= 8; ++f)
+        {
+            Square sq = board.getSquare({(File)f, (Rank)r});
+            if (sq.getPieceType() == Piece::King && sq.getPieceSide() == side)
+            {
+                kingPos = {(File)f, (Rank)r};
+                found = true;
+                break;
+            }
+        }
+        if (found) break;
+    }
+
+    // şah yoksa false (testler için).
+    if (!found) return false;
+
+    Side enemySide = (side == Side::White) ? Side::Black : Side::White;
+    return isSquareAttacked(kingPos, enemySide, board);
 }
-
 bool Chess::isAttackedBy(Square /**attacker tmpSquareuare */, Square /** king tmpSquareuare */, const Board&)
 {
     return false;
