@@ -2,5 +2,4 @@
 *.exe
 build/
 test.cpp
-Game.cpp
 chess_game
