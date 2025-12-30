@@ -50,34 +50,42 @@ Chess::MoveType Chess::isValidPieceMove(const Move& move, const Board& board)
      */
     if(currentPiece != Chess::Piece::Knight)
     {
-        int currentargetFile = (int)fromSquare.getCoordinate().file;
-        int currentargetRank = (int)fromSquare.getCoordinate().rank;
+        int currentFile = (int)fromSquare.getCoordinate().file;
+        int currentRank = (int)fromSquare.getCoordinate().rank;
         
-        int targetargetFile = (int)toSquare.getCoordinate().file;
-        int targetargetRank = (int)toSquare.getCoordinate().rank;
+        int targetFile = (int)toSquare.getCoordinate().file;
+        int targetRank = (int)toSquare.getCoordinate().rank;
     
-        int fileStep = 0;
-        if (targetargetFile > currentargetFile) fileStep = 1;
-        else if (targetargetFile < currentargetFile) fileStep = -1;
-    
-        int rankStep = 0;
-        if (targetargetRank > currentargetRank) rankStep = 1;
-        else if (targetargetRank < currentargetRank) rankStep = -1;
-    
-        currentargetFile += fileStep;
-        currentargetRank += rankStep;
-    
-        while (currentargetFile != targetargetFile || currentargetRank != targetargetRank)
+        int diffFile = std::abs(targetFile - currentFile);
+        int diffRank = std::abs(targetRank - currentRank);
+
+        bool isStraight = (diffFile == 0 || diffRank == 0);
+        bool isDiagonal = (diffFile == diffRank);
+
+        if(isStraight || isDiagonal)
         {
-            Rank tmpRank = (Rank)currentargetRank;
-            File tmpFile = (File)currentargetFile;
+            int fileStep = 0;
+            if (targetFile > currentFile) fileStep = 1;
+            else if (targetFile < currentFile) fileStep = -1;
         
-            Square checkSquare = board.getSquare({tmpFile, tmpRank});
+            int rankStep = 0;
+            if (targetRank > currentRank) rankStep = 1;
+            else if (targetRank < currentRank) rankStep = -1;
+        
+            currentFile += fileStep;
+            currentRank += rankStep;
+        
+            while (currentFile != targetFile || currentRank != targetRank)
+            {
+                if (currentFile < 1 || currentFile > 8 || currentRank < 1 || currentRank > 8) break;
+
+                Square checkSquare = board.getSquare({(File)currentFile, (Rank)currentRank});
+                
+                if(checkSquare.getPieceType() != Chess::Piece::Empty) return Chess::MoveType::Invalid;
             
-            if(checkSquare.getPieceType() != Chess::Piece::Empty) return Chess::MoveType::Invalid;
-        
-            currentargetFile += fileStep;
-            currentargetRank += rankStep;
+                currentFile += fileStep;
+                currentRank += rankStep;
+            }
         }
     }
 
@@ -586,3 +594,35 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
     return moveType; 
 }
 
+Chess::GameState Chess::getGameState(const Board& board)
+{
+    Side turn = board.getTurn();
+
+    // Tüm tahtayı tara
+    for (int r1 = 1; r1 <= 8; ++r1)
+        for (int f1 = 1; f1 <= 8; ++f1)
+        {
+            Square searchSquare = board.getSquare({(File)f1, (Rank)r1});
+            if (searchSquare.getPieceSide() == turn)
+            {
+                /**
+                 * tüm tahtadaki herhangi bir yere gidebiliyormu
+                 */
+                for (int r2 = 1; r2 <= 8; ++r2)
+                    for (int f2 = 1; f2 <= 8; ++f2)
+                    {
+                        Square currentSquare = board.getSquare({(File)f2, (Rank)r2});
+                        
+                        Move potentialMove(searchSquare, currentSquare);
+                        MoveType type = MoveValidator(potentialMove, turn, board);
+
+                        if (type != MoveType::Invalid && type != MoveType::inCheck) return GameState::Ongoing;
+                    }
+            }
+        }
+
+    // buraya kadar geldik... demek ki mat | pat değiliz
+
+    if (isKingInCheck(board, turn)) return GameState::Checkmate; // Mat
+    else return GameState::Stalemate; // Pat
+}
