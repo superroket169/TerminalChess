@@ -11,6 +11,7 @@ namespace Chess
     enum class Side { None = -1, White, Black };
 
     enum class MoveType { inCheck = 0, Invalid = 0, Valid, Capture, DoublePush, EnPassant, PawnCapture, KingsideCastling, QueensideCastling, Promotion };
+    enum class GameState { Ongoing, Checkmate, Stalemate };
 
     struct BoardCoordinate
     {
@@ -251,6 +252,7 @@ namespace Chess
     MoveType isValidKingMove(const Move&, const Board&);
     
     MoveType makeMove(Move, Side, Board&);
+    GameState getGameState(const Board& board);
 
     bool isKingInCheck(const Board&, Side);
     bool isSquareAttacked(BoardCoordinate, Side, const Board&);

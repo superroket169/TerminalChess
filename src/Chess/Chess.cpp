@@ -450,14 +450,79 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
     setToSquare.setPieceType(movingPiece);
     setToSquare.setPieceSide(movingSide);
 
-    if(moveType == MoveType::Valid || 
-       moveType == MoveType::Capture || 
-       moveType == MoveType::DoublePush || 
-       moveType == MoveType::PawnCapture)
+    int fromRank = (int)move.getFrom().getCoordinate().rank;
+    int fromFile = (int)move.getFrom().getCoordinate().file;
+    int toRank   = (int)move.getTo().getCoordinate().rank;
+    int toFile   = (int)move.getTo().getCoordinate().file;
+    
+    if(movingPiece == Piece::Pawn && toRank == ((side == Side::White) ? 8 : 1))
+    {
+        setToSquare.setPieceType(Piece::Queen);
+        
+        board.setSquare(setFromSquare);
+        board.setSquare(setToSquare);
+
+        /**
+         * @todo isValidPawnMove fonksiyonunun MoveType::Promotion döndürüp kodu basitleştirmek amaçlanıyor
+         */
+        return MoveType::Promotion; // moveType::Promotion
+    }
+    
+    /**
+     * rok için kontrolleri düzenle:
+     */
+    if (movingPiece == Piece::King)
+    board.setKingMoved(side, true);
+    if(movingPiece == Piece::Rook)
+    {
+        if ((File)fromFile == File::A) board.setQueenRookMoved(side, true);
+        if ((File)fromFile == File::H) board.setKingRookMoved(side, true);
+    }
+
+    /**
+     * böyle birşey olmamalı(!):
+     * kale hiç hareket etmediyse ve yenildiyse rok rontrolü düzenlemesi
+     */
+    Square targetSquare = board.getSquare(move.getTo().getCoordinate());
+    if (targetSquare.getPieceType() == Piece::Rook)
+    {
+        Side enemySide = (side == Side::White) ? Side::Black : Side::White;
+        int enemyBaseRank = (enemySide == Side::White) ? 1 : 8;
+
+        if (toRank == enemyBaseRank)
+        {
+            if ((File)toFile == File::A) board.setQueenRookMoved(enemySide, true);
+            if ((File)toFile == File::H) board.setKingRookMoved(enemySide, true);
+        }
+    }
+    
+    // temizleme
+    board.clearEnPassantTarget();
+    if(moveType == MoveType::EnPassant)
     {
         board.setSquare(setFromSquare);
         board.setSquare(setToSquare);
-        return moveType;
+
+        int enemyRank = (side == Side::White) ? 5 : 4;
+
+        Square enemyPawnSquare;
+        enemyPawnSquare.setCoordinate({(File)toFile, (Rank)enemyRank});
+        enemyPawnSquare.setPieceType(Piece::Empty);
+        enemyPawnSquare.setPieceSide(Side::None);
+        
+        board.setSquare(enemyPawnSquare);
+
+        return MoveType::EnPassant;
+    }
+
+    if(moveType == MoveType::DoublePush)
+    {
+        int direction = (side == Side::White) ? 1 : -1;
+        BoardCoordinate enpassantCoord;
+        enpassantCoord.file = (File)fromFile;
+        enpassantCoord.rank = (Rank)(fromRank + direction); 
+        
+        board.setEnPassantTarget(enpassantCoord);
     }
 
     if(moveType == MoveType::QueensideCastling)
@@ -508,5 +573,16 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
         return moveType;
     }
 
+    if(moveType == MoveType::Valid || 
+       moveType == MoveType::Capture || 
+       moveType == MoveType::DoublePush ||
+       moveType == MoveType::PawnCapture)
+    {
+        board.setSquare(setFromSquare);
+        board.setSquare(setToSquare);
+        return moveType;
+    }
+
     return moveType; 
 }
+
