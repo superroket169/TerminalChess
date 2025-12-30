@@ -1,19 +1,28 @@
 # TerminalChess
 A two-player chess game that runs entirely in the terminal (CLI).
 
+> [!Warning]
+> have no any interface based on graphics or CLI
+
 ## Status
-- Work in progress — currently between alpha and beta.
-- Probably this have a lot error & mistake
+- added moveValidator, makeMove, getGameState functions
+- already can playable with your friends
 
 ## Features
 - Two-player local chess
-- Early abort and resign options
-- Check detection mechanics
+- CheckMate, Stealmate controls
+- have these : enpassant, castlings, promotions
 
 ## Tech Stack
 - C++
 
 ## Planned Features
-- Checkmate detection
-- Move validation improvements
 - Board rendering enhancements
+- Adding a chessBot uses bruteForce & tree
+
+## how to run
+
+```bash
+g++ ./src/Chess/Game.cpp ./src/Chess/Chess.cpp -o gameCLI
+```
+
