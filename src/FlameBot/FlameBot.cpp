@@ -1,50 +1,77 @@
 #include "FlameBot.h"
 #include "../BoardHash/BoardHash.h"
+#include "../Time/Time.h"
 #include <algorithm>
 #include <iostream>
 
 Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 {
+    Chess::Move globalBestMove;
+    
     std::vector<Chess::Move> moves = getAllValidMoves(board, board.getTurn());
+    if (moves.empty()) return globalBestMove;
     
-    Chess::Move bestMove;
+    globalBestMove = moves[0];
 
-    if (moves.empty()) return bestMove;
+    Time timer;
+    timer.start();
+    double timeLimit = 5.0;
 
-    bestMove = moves[0];
-
-    bool isWhiteTurn = (board.getTurn() == Chess::Side::White);
-    
-    int bestVal = isWhiteTurn ? -INF : INF;
-    
-    for (const auto& move : moves)
+    for(int depthIndex = 1; depthIndex <= depth; depthIndex++)
     {
-        Chess::Board tempBoard = board;
-        Chess::makeMove(move, board.getTurn(), tempBoard);
-        tempBoard.passTurn();
+        Chess::Move currentDepthBestMove;
+        bool isWhiteTurn = (board.getTurn() == Chess::Side::White);
+        int bestVal = isWhiteTurn ? -999999 : 999999;
         
-        int moveVal = searchTree(tempBoard, depth - 1, -INF, INF, !isWhiteTurn);
-        
-        if (isWhiteTurn)
+        // geliştirilmiş ordering alpha-beta cuting hızlanır
+        if(depthIndex > 1)
         {
-            // Beyaz: Daha büyük puan arar
-            if (moveVal > bestVal)
+            for(size_t i = 0; i < moves.size(); ++i)
             {
-                bestVal = moveVal;
-                bestMove = move;
+                if(moves[i].getFrom().getCoordinate().file == globalBestMove.getFrom().getCoordinate().file && 
+                    moves[i].getFrom().getCoordinate().rank == globalBestMove.getFrom().getCoordinate().rank &&
+                    moves[i].getTo().getCoordinate().file == globalBestMove.getTo().getCoordinate().file &&
+                    moves[i].getTo().getCoordinate().rank == globalBestMove.getTo().getCoordinate().rank) 
+                {
+                    std::swap(moves[0], moves[i]);
+                    break;
+                }
             }
         }
-        else
+
+
+        for(const auto& move : moves)
         {
-            // Siyah: Daha küçük (negatif) puan arar
-            if (moveVal < bestVal)
+            Chess::Board tempBoard = board;
+            Chess::makeMove(move, board.getTurn(), tempBoard);
+            tempBoard.passTurn();
+            
+            int moveVal = searchTree(tempBoard, depthIndex - 1, -999999, 999999, !isWhiteTurn);
+            
+            if(isWhiteTurn && (moveVal > bestVal))
             {
                 bestVal = moveVal;
-                bestMove = move;
+                currentDepthBestMove = move;
             }
+            else if(moveVal < bestVal)
+            {
+                bestVal = moveVal;
+                currentDepthBestMove = move;
+            }
+        }
+
+        globalBestMove = currentDepthBestMove;
+        
+        std::cout << "[Depth] " << depthIndex << " [finished] | [State]: " << bestVal << " | [Timer]: " << timer.elapsedTime() << "s" << "\n";
+
+        if(timer.elapsedTime() > timeLimit)
+        {
+            std::cout << "time is over. procces stoped\n";
+            break; 
         }
     }
-    return bestMove;
+
+    return globalBestMove;
 }
 
 int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing)
@@ -251,3 +278,4 @@ int FlameBoth::Bot::fastMoveOrdering(const Chess::Move& move, const Chess::Board
     }
     return score;
 }
+
