@@ -64,7 +64,7 @@ int main()
     FlameBoth::Bot bot;
     
     // Bot Ayarları
-    int botDepth = 6;
+    int botDepth = 7;
     Chess::Side playerSide = Chess::Side::White;
     Chess::Side botSide = Chess::Side::Black;
 

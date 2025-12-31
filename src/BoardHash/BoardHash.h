@@ -15,5 +15,5 @@ namespace BoardHash
      */
     std::string generateID(const Chess::Board& board);
 
-    std::unordered_map<std::string, boardInf> boardMap;
+    inline std::unordered_map<std::string, boardInf> boardMap;
 }

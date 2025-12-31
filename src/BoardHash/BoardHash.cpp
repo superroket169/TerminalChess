@@ -1,7 +1,5 @@
 #include "BoardHash.h"
 
-std::unordered_map<std::string, BoardHash::boardInf> BoardHash::boardMap;
-
 std::string BoardHash::generateID(const Chess::Board& board)
 {
     // 64 Kare + 4 + 2  + 1 + 2 = 73

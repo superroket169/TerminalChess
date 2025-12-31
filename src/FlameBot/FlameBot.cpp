@@ -1,4 +1,5 @@
 #include "FlameBot.h"
+#include "../BoardHash/BoardHash.h"
 #include <algorithm>
 #include <iostream>
 
@@ -48,6 +49,14 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 
 int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing)
 {
+    std::string boardID = BoardHash::generateID(board);
+    
+    if (BoardHash::boardMap.count(boardID)) 
+    {
+        BoardHash::boardInf entry = BoardHash::boardMap[boardID];
+        if(entry.depth >= depth) return entry.score; 
+    }
+
     if(depth == 0) return evaluate(board);
 
     Chess::Side currentSide = board.getTurn();
@@ -66,9 +75,12 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
         return fastMoveOrdering(a, board) > fastMoveOrdering(b, board);
     });
 
+    int maxEval;
+    int minEval;
+
     if (isMaximizing) // White (default)
     {
-        int maxEval = -INF;
+        maxEval = -INF;
         for (const auto& move : moves)
         {
             Chess::Board tempBoard = board;
@@ -82,11 +94,10 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
 
             if (beta <= alpha) break;
         }
-        return maxEval;
     }
     else // Black (default)
     {
-        int minEval = INF;
+        minEval = INF;
         for (const auto& move : moves)
         {
             Chess::Board tempBoard = board;
@@ -100,8 +111,17 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
 
             if (beta <= alpha) break;
         }
-        return minEval;
     }
+
+    int finalScore = isMaximizing ? maxEval : minEval;
+
+    BoardHash::boardInf newEntry;
+    newEntry.score = finalScore;
+    newEntry.depth = depth;
+    
+    BoardHash::boardMap[boardID] = newEntry;
+
+    return finalScore;
 }
 
 int FlameBoth::Bot::evaluate(const Chess::Board& board)
