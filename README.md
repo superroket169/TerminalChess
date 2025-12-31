@@ -1,32 +1,21 @@
-# TerminalChess
-A two-player chess game that runs entirely in the terminal (CLI).
+# FlameBot Chess Engine
 
-## Status
-- added moveValidator, makeMove, getGameState functions
-- already can playable with your friends
-- already have a bot that can calculate 4 depth in 1-2 seconds
+FlameBot is a terminal-based chess engine written in C++. It utilizes tree search algorithms to provide a competitive experience against human players.
 
 ## Features
-- Two-player local chess
-- CheckMate, Stealmate controls
-- have these : enpassant, castlings, promotions
 
-### FlameBot
-- The bot is just calculate most piece value
-- I'll add central value for game begin
-- it can calculate 4 depth in few seconds
-- it can calculate 5 depth in 10-15 seconds
+* **Search Algorithm:** Minimax with Alpha-Beta Pruning.
+* **Optimization:** Move Ordering for faster cut-offs.
+* **Memory:** Transposition Table using String Hashing to cache board states.
+* **Time Management:** Iterative Deepening with a strict time limit (default: 5s).
+* **Interface:** Clean Command Line Interface (CLI).
 
-## Tech Stack
-- C++
+## Build Instructions
 
-## Planned Features
-- Board rendering enhancements
-- Adding a chessBot uses bruteForce & tree
+You need a C++ compiler that supports **C++17** (GCC, MinGW, or Clang).
 
-## how to build
+### Linux (Ubuntu/Debian)
+Run the following command in the project root:
 
 ```bash
-g++ ./src/Chess/Game.cpp ./src/FlameBot/Game.cpp ./src/Chess/Chess.cpp -o gameCLI
-```
-
+g++ ./src/Game.cpp ./src/Time/Time.cpp ./src/Chess/Chess.cpp ./src/BoardHash/BoardHash.cpp ./src/FlameBot/FlameBot.cpp -std=c++17 -O3 -o gameCLI
