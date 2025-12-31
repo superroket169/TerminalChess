@@ -60,7 +60,7 @@ bool parseCoordinate(std::string s, Chess::BoardCoordinate& outCoord)
 int main()
 {
     // BoardHash::init();
-    std::cout << "=== FlameBoth Engine Baslatiliyor ===\n";
+    std::cout << "=== FlameBoth Engine is Starting ===\n";
 
     Chess::Board board;
     FlameBoth::Bot bot;
@@ -70,7 +70,7 @@ int main()
     Chess::Side playerSide = Chess::Side::White;
     Chess::Side botSide = Chess::Side::Black;
 
-    std::cout << "Sen: Beyaz | Bot: Siyah\n";
+    std::cout << "you: White | Bot: Black\n";
 
     while (true)
     {
