@@ -66,7 +66,7 @@ int main()
     FlameBoth::Bot bot;
     
     // Bot Ayarları
-    int botDepth = 7;
+    int botDepth = 10;
     Chess::Side playerSide = Chess::Side::White;
     Chess::Side botSide = Chess::Side::Black;
 
@@ -79,28 +79,28 @@ int main()
         Chess::GameState state = Chess::getGameState(board);
         if (state == Chess::GameState::Checkmate)
         {
-            std::cout << "!!! SAH MAT !!! " << (board.getTurn() == Chess::Side::White ? "SIYAH" : "BEYAZ") << " KAZANDI!\n";
+            std::cout << "!!! CheckMate !!! " << (board.getTurn() == Chess::Side::White ? "BLACK" : "WHITE") << " WINS!\n";
             break;
         }
         else if (state == Chess::GameState::Stalemate)
         {
-            std::cout << "!!! PAT !!! OYUN BERABERE.\n";
+            std::cout << "!!! StealMAte !!! No one wins.\n";
             break;
         }
 
         if (board.getTurn() == playerSide)
         {
             std::string input;
-            std::cout << "Hamleniz: ";
+            std::cout << "your move: ";
             std::cin >> input;
 
             if (input == "exit") break;
-            if (input.length() != 4) { std::cout << "Gecersiz format!\n"; continue; }
+            if (input.length() != 4) { std::cout << "invalid format!\n"; continue; }
 
             Chess::BoardCoordinate from, to;
             if (!parseCoordinate(input.substr(0, 2), from) || !parseCoordinate(input.substr(2, 2), to))
             {
-                std::cout << "Gecersiz koordinat!\n"; continue;
+                std::cout << "invalid coordinate!\n"; continue;
             }
 
             Chess::Square sqFrom; sqFrom.setCoordinate(from);
@@ -108,27 +108,27 @@ int main()
             Chess::Move move(sqFrom, sqTo);
 
             Chess::MoveType result = Chess::makeMove(move, board.getTurn(), board);
-            if (result == Chess::MoveType::Invalid)      std::cout << ">>> Gecersiz Hamle!\n";
-            else if (result == Chess::MoveType::inCheck) std::cout << ">>> Sah altindasin!\n";
+            if (result == Chess::MoveType::Invalid)      std::cout << ">>> invalid move!\n";
+            else if (result == Chess::MoveType::inCheck) std::cout << ">>> you are in check!\n";
             else board.passTurn();
         }
         else
         {
-            std::cout << "FlameBoth dusunuyor... (Derinlik: " << botDepth << ")\n";
+            std::cout << "FlameBoth thinking... (Depth: " << botDepth << ")\n";
             
             Time timer;
             timer.start();
             Chess::Move bestMove = bot.getBestMove(board, botDepth);
             float timerTime = timer.elapsedTime();
 
-            std::cout << "Hesaplama Suresi: " << timerTime << " saniye." << "\n";
+            std::cout << "Calculate time: " << timerTime << " saniye." << "\n";
             
             Chess::File f1 = bestMove.getFrom().getCoordinate().file;
             Chess::Rank r1 = bestMove.getFrom().getCoordinate().rank;
             Chess::File f2 = bestMove.getTo().getCoordinate().file;
             Chess::Rank r2 = bestMove.getTo().getCoordinate().rank;
 
-            std::cout << "Bot Oynadi: " 
+            std::cout << "Bot played: " 
                       << (char)('a' + (int)f1 - 1) << (int)r1 
                       << (char)('a' + (int)f2 - 1) << (int)r2 << "\n";
 
