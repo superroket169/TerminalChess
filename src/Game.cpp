@@ -3,6 +3,7 @@
 #include <vector>
 #include "Chess/Chess.h"
 #include "FlameBot/FlameBot.h"
+#include "Time/Time.h"
 
 #ifdef _WIN32
 #define CLEAR_SCREEN "cls"
@@ -63,7 +64,7 @@ int main()
     FlameBoth::Bot bot;
     
     // Bot Ayarları
-    int botDepth = 4;
+    int botDepth = 6;
     Chess::Side playerSide = Chess::Side::White;
     Chess::Side botSide = Chess::Side::Black;
 
@@ -113,7 +114,12 @@ int main()
         {
             std::cout << "FlameBoth dusunuyor... (Derinlik: " << botDepth << ")\n";
             
+            Time timer;
+            timer.start();
             Chess::Move bestMove = bot.getBestMove(board, botDepth);
+            float timerTime = timer.elapsedTime();
+
+            std::cout << "Hesaplama Suresi: " << timerTime << " saniye." << "\n";
             
             Chess::File f1 = bestMove.getFrom().getCoordinate().file;
             Chess::Rank r1 = bestMove.getFrom().getCoordinate().rank;

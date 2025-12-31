@@ -27,5 +27,6 @@ namespace FlameBoth
         int searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing);
         int evaluate(const Chess::Board& board);
         std::vector<Chess::Move> getAllValidMoves(const Chess::Board& board, Chess::Side side);
+        int fastMoveOrdering(const Chess::Move& move, const Chess::Board& board);
     };
 }

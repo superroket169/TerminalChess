@@ -62,6 +62,10 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
         else return 0; // Pat
     }
 
+    std::sort(moves.begin(), moves.end(), [&](const Chess::Move& a, const Chess::Move& b){
+        return fastMoveOrdering(a, board) > fastMoveOrdering(b, board);
+    });
+
     if (isMaximizing) // White (default)
     {
         int maxEval = -INF;
@@ -181,4 +185,51 @@ std::vector<Chess::Move> FlameBoth::Bot::getAllValidMoves(const Chess::Board& bo
         }
     }
     return validMoves;
+}
+
+/**
+ * @todo eklenecekler:
+ * - vezir çıkma
+ * - rok
+ * - böyle şeyler işte
+ */
+int FlameBoth::Bot::fastMoveOrdering(const Chess::Move& move, const Chess::Board& board)
+{
+    int score = 0;
+    
+    Chess::Square targetSquare = board.getSquare(move.getTo().getCoordinate());
+    Chess::Square sourceSquare = board.getSquare(move.getFrom().getCoordinate());
+
+    if (targetSquare.getPieceType() != Chess::Piece::Empty)
+    {
+        int victimValue = 0;
+
+        switch(targetSquare.getPieceType())
+        {
+            case Chess::Piece::Pawn:   victimValue = 100; break;
+            case Chess::Piece::Knight: victimValue = 300; break;
+            case Chess::Piece::Bishop: victimValue = 300; break;
+            case Chess::Piece::Rook:   victimValue = 500; break;
+            case Chess::Piece::Queen:  victimValue = 900; break;
+            case Chess::Piece::King:   victimValue = 2000; break;
+            default: break;
+        }
+
+        int aggressorValue = 0; 
+        switch(sourceSquare.getPieceType())
+        {
+            case Chess::Piece::Pawn:   aggressorValue = 100; break;
+            case Chess::Piece::Knight: aggressorValue = 300; break;
+            case Chess::Piece::Bishop: aggressorValue = 300; break;
+            case Chess::Piece::Rook:   aggressorValue = 500; break;
+            case Chess::Piece::Queen:  aggressorValue = 900; break;
+            case Chess::Piece::King:   aggressorValue = 2000; break;
+             default: break;
+        }
+
+        score = (victimValue * 10) - aggressorValue;
+        
+        score += 10000;
+    }
+    return score;
 }
