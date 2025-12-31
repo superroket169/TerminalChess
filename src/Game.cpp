@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "BoardHash/BoardHash.h"
 #include "Chess/Chess.h"
 #include "FlameBot/FlameBot.h"
 #include "Time/Time.h"
@@ -58,6 +59,7 @@ bool parseCoordinate(std::string s, Chess::BoardCoordinate& outCoord)
 
 int main()
 {
+    BoardHash::init();
     std::cout << "=== FlameBoth Engine Baslatiliyor ===\n";
 
     Chess::Board board;

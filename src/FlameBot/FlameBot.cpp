@@ -49,12 +49,14 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 
 int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing)
 {
-    std::string boardID = BoardHash::generateID(board);
-    
-    if (BoardHash::boardMap.count(boardID)) 
+    Key hash = BoardHash::generateHash(board);
+    int index = hash & (BoardHash::TABLE_SIZE - 1);
+    BoardHash::Entry& entry = BoardHash::Table[index];
+
+    if (entry.key == hash) 
     {
-        BoardHash::boardInf entry = BoardHash::boardMap[boardID];
-        if(entry.depth >= depth) return entry.score; 
+        if (entry.depth >= depth) 
+            return entry.score;
     }
 
     if(depth == 0) return evaluate(board);
@@ -115,11 +117,12 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
 
     int finalScore = isMaximizing ? maxEval : minEval;
 
-    BoardHash::boardInf newEntry;
-    newEntry.score = finalScore;
-    newEntry.depth = depth;
-    
-    BoardHash::boardMap[boardID] = newEntry;
+    if (entry.key == 0 || depth >= entry.depth) 
+    {
+        entry.key = hash;
+        entry.score = finalScore;
+        entry.depth = depth;
+    }
 
     return finalScore;
 }
