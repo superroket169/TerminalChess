@@ -59,7 +59,7 @@ bool parseCoordinate(std::string s, Chess::BoardCoordinate& outCoord)
 
 int main()
 {
-    BoardHash::init();
+    // BoardHash::init();
     std::cout << "=== FlameBoth Engine Baslatiliyor ===\n";
 
     Chess::Board board;

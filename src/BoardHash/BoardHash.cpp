@@ -2,7 +2,7 @@
 #include <random>
 #include <cstring>
 
-/*
+
 std::string BoardHash::generateID(const Chess::Board& board)
 {
     // 64 Kare + 4 + 2  + 1 + 2 = 73
@@ -51,8 +51,8 @@ std::string BoardHash::generateID(const Chess::Board& board)
 
     return hashString;
 }
-*/
 
+/*
 namespace BoardHash
 {
     // not : rastgele sayı üretiminde seed sabittir
@@ -70,7 +70,7 @@ namespace BoardHash
      * @brief tohumu başlatma işlemlerini yapar:
      * - not: kod tam olarak bana ait değil ai dan destek aldım: 
      * - sadece init de ve veri türlerinde & rastgeleleştirmede (orn : mt19937_64)
-     */
+    
     void init()
     {
         // sabit seed (Tohum):
@@ -154,3 +154,5 @@ namespace BoardHash
         return finalHash;
     }
 }
+
+*/
