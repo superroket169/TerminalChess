@@ -125,6 +125,16 @@ int FlameBoth::Bot::evaluate(const Chess::Board& board)
                 case Chess::Piece::King:   pieceValue = (int) EvulateValue::MateValue ; break; 
             }
 
+            /**
+             * merkezdeyse + puan
+             */
+            if(pieceValue != (int) EvulateValue::MateValue && pieceValue != 0)
+            {
+                // if(r == e4 e5 d4 d5)
+
+                if( (r == 4 || r == 5) && ( f == 4 || f == 5) ) pieceValue += 50;
+            }
+
             if (sq.getPieceSide() == Chess::Side::White)
                 whiteScore += pieceValue;
             else
