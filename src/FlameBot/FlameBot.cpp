@@ -62,7 +62,7 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
         else return 0; // Pat
     }
 
-    if (isMaximizing) // Sıra Beyazda
+    if (isMaximizing) // White (default)
     {
         int maxEval = -INF;
         for (const auto& move : moves)
@@ -80,7 +80,7 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
         }
         return maxEval;
     }
-    else // Sıra Siyahta
+    else // Black (default)
     {
         int minEval = INF;
         for (const auto& move : moves)
@@ -89,7 +89,6 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
             Chess::makeMove(move, currentSide, tempBoard);
             tempBoard.passTurn();
             
-            // Sıra Beyaza geçti (true)
             int eval = searchTree(tempBoard, depth - 1, alpha, beta, true);
             
             minEval = std::min(minEval, eval);
@@ -130,7 +129,7 @@ int FlameBoth::Bot::evaluate(const Chess::Board& board)
              */
             if(pieceValue != (int) EvulateValue::MateValue && pieceValue != 0)
             {
-                // if(r == e4 e5 d4 d5)
+                // if(r == e4 e5 d4 d5) 
 
                 if( (r == 4 || r == 5) && ( f == 4 || f == 5) ) pieceValue += 50;
             }
