@@ -3,3 +3,4 @@
 build/
 test.cpp
 chess_game
+CMakeFlies/
