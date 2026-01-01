@@ -42,26 +42,20 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
             }
         }
 
-
-        for(const auto& move : moves)
+        for (const auto& move : moves)
         {
             Chess::Board tempBoard = board;
-            Chess::makeMove(move, board.getTurn(), tempBoard);
-            tempBoard.passTurn();
-            
-            int moveVal = searchTree(tempBoard, depthIndex - 1, -999999, 999999, !isWhiteTurn);
-            
-            if(isWhiteTurn && (moveVal > bestVal))
-            {
-                bestVal = moveVal;
-                currentDepthBestMove = move;
-            }
-            else if(moveVal < bestVal)
-            {
-                bestVal = moveVal;
-                currentDepthBestMove = move;
+            Chess::makeMove(move, board.getTurn(), tempBoard); // artık flipliyor
+        
+            int moveVal = searchTree(tempBoard, depthIndex - 1, -INF, INF, false /*ignored*/);
+        
+            if (isWhiteTurn) {
+                if (moveVal > bestVal) { bestVal = moveVal; currentDepthBestMove = move; }
+            } else {
+                if (moveVal < bestVal) { bestVal = moveVal; currentDepthBestMove = move; }
             }
         }
+
 
         globalBestMove = currentDepthBestMove;
         
@@ -83,22 +77,44 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing)
 {
     std::string boardID = BoardHash::generateID(board);
+
     if (BoardHash::Table.count(boardID)) 
     {
-        BoardHash::Entry& e = BoardHash::Table[boardID];
-        if (e.depth >= depth) return e.score;
+        BoardHash::Entry &e = BoardHash::Table[boardID];
+        if (e.depth >= depth)
+        {
+            if (e.bound == BoardHash::BOUND_EXACT) return e.score;
+            if (e.bound == BoardHash::BOUND_LOWER) alpha = std::max(alpha, e.score);
+            else if (e.bound == BoardHash::BOUND_UPPER) beta = std::min(beta, e.score);
+            if (alpha >= beta) return e.score;
+        }
+    }
+
+    // terminal kontrolü
+    Chess::GameState gs = Chess::getGameState(board);
+    if (gs == Chess::GameState::Checkmate)
+    {
+        Chess::Side toMove = board.getTurn();
+        if (toMove == Chess::Side::White) return -MATE_SCORE - depth;
+        else return MATE_SCORE + depth;
+    }
+    else if (gs == Chess::GameState::Stalemate)
+    {
+        return 0;
     }
 
     if(depth == 0) return evaluate(board);
 
     Chess::Side currentSide = board.getTurn();
+    isMaximizing = (currentSide == Chess::Side::White);
+
     std::vector<Chess::Move> moves = getAllValidMoves(board, currentSide);
 
-    if(Chess::getGameState(board) == Chess::GameState::Checkmate)
-    {
-        if(isMaximizing) return -MATE_SCORE - depth;
-        else return MATE_SCORE + depth;
-    }
+    // if(Chess::getGameState(board) == Chess::GameState::Checkmate)
+    // {
+    //     if(isMaximizing) return -MATE_SCORE - depth;
+    //     else return MATE_SCORE + depth;
+    // }
 
     if(moves.empty())
     {
@@ -114,52 +130,50 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
         return fastMoveOrdering(a, board) > fastMoveOrdering(b, board);
     });
 
-    int maxEval;
-    int minEval;
+    int value;
+    int alphaOrig = alpha;
+    int betaOrig = beta;
 
-    if (isMaximizing) // White (default)
+    if (isMaximizing)
     {
-        maxEval = -INF;
+        value = -INF;
         for (const auto& move : moves)
         {
-            Chess::Board tempBoard = board;
-            Chess::makeMove(move, currentSide, tempBoard);
-            tempBoard.passTurn();
+            Chess::Board tmp = board;
+            Chess::makeMove(move, currentSide, tmp);
+            // tmp.passTurn();
 
-            int eval = searchTree(tempBoard, depth - 1, alpha, beta, false);
-            
-            maxEval = std::max(maxEval, eval);
-            alpha = std::max(alpha, eval); 
-
-            if (beta <= alpha) break;
+            int eval = searchTree(tmp, depth - 1, alpha, beta, false);
+            value = std::max(value, eval);
+            alpha = std::max(alpha, eval);
+            if (alpha >= beta) break;
         }
     }
-    else // Black (default)
+    else
     {
-        minEval = INF;
+        value = INF;
         for (const auto& move : moves)
         {
-            Chess::Board tempBoard = board;
-            Chess::makeMove(move, currentSide, tempBoard);
-            tempBoard.passTurn();
-            
-            int eval = searchTree(tempBoard, depth - 1, alpha, beta, true);
-            
-            minEval = std::min(minEval, eval);
-            beta = std::min(beta, eval); 
+            Chess::Board tmp = board;
+            Chess::makeMove(move, currentSide, tmp);
+            // tmp.passTurn();
 
-            if (beta <= alpha) break;
+            int eval = searchTree(tmp, depth - 1, alpha, beta, true);
+            value = std::min(value, eval);
+            beta = std::min(beta, eval);
+            if (alpha >= beta) break;
         }
     }
-
-    int finalScore = isMaximizing ? maxEval : minEval;
 
     BoardHash::Entry newEntry;
-    newEntry.score = finalScore;
+    newEntry.score = value;
     newEntry.depth = depth;
+    if (value <= alphaOrig) newEntry.bound = BoardHash::BOUND_UPPER;
+    else if (value >= betaOrig) newEntry.bound = BoardHash::BOUND_LOWER;
+    else newEntry.bound = BoardHash::BOUND_EXACT;
     BoardHash::Table[boardID] = newEntry;
 
-    return finalScore;
+    return value;
 }
 
 double specificSigmoid(int totalNonPawnMaterial)

@@ -9,12 +9,12 @@ using Key = uint64_t;
 
 namespace BoardHash
 {
+    enum Bound { BOUND_EXACT = 0, BOUND_LOWER = 1, BOUND_UPPER = 2 };
     struct Entry 
     {
         int score;
         int depth;
-        // int flag;    // : Exact, Alpha, Beta (olacak)
-        // Move bestMove; // : En iyi hamle (olacak)
+        Bound bound;
     };
 
     inline std::unordered_map<std::string, Entry> Table;

@@ -442,7 +442,7 @@ bool Chess::isKingInCheck(const Board& board, Side side)
 
 Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
 {
-    Chess::MoveType moveType = MoveValidator(move, board.getTurn(), board);
+    Chess::MoveType moveType = MoveValidator(move, side, board);
     
     if(moveType == MoveType::Invalid || moveType == MoveType::inCheck) 
         return MoveType::Invalid;
@@ -466,31 +466,21 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
     if(movingPiece == Piece::Pawn && toRank == ((side == Side::White) ? 8 : 1))
     {
         setToSquare.setPieceType(Piece::Queen);
-        
         board.setSquare(setFromSquare);
         board.setSquare(setToSquare);
 
-        /**
-         * @todo isValidPawnMove fonksiyonunun MoveType::Promotion döndürüp kodu basitleştirmek amaçlanıyor
-         */
-        return MoveType::Promotion; // moveType::Promotion
+        board.passTurn();
+        return MoveType::Promotion;
     }
     
-    /**
-     * rok için kontrolleri düzenle:
-     */
     if (movingPiece == Piece::King)
-    board.setKingMoved(side, true);
+        board.setKingMoved(side, true);
     if(movingPiece == Piece::Rook)
     {
         if ((File)fromFile == File::A) board.setQueenRookMoved(side, true);
         if ((File)fromFile == File::H) board.setKingRookMoved(side, true);
     }
 
-    /**
-     * böyle birşey olmamalı(!):
-     * kale hiç hareket etmediyse ve yenildiyse rok rontrolü düzenlemesi
-     */
     Square targetSquare = board.getSquare(move.getTo().getCoordinate());
     if (targetSquare.getPieceType() == Piece::Rook)
     {
@@ -504,7 +494,6 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
         }
     }
     
-    // temizleme
     board.clearEnPassantTarget();
     if(moveType == MoveType::EnPassant)
     {
@@ -520,6 +509,7 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
         
         board.setSquare(enemyPawnSquare);
 
+        board.passTurn();
         return MoveType::EnPassant;
     }
 
@@ -538,8 +528,6 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
         board.setSquare(setFromSquare);
         board.setSquare(setToSquare);
 
-        int rankIdx = (side == Side::White) ? 0 : 7;
-        
         Rank r = (side == Side::White) ? Rank::One : Rank::Eight;
 
         Square rookOldSquare;
@@ -557,6 +545,7 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
 
         board.setCastled(side, true);
 
+        board.passTurn();
         return moveType;
     }
 
@@ -564,7 +553,7 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
     {
         board.setSquare(setFromSquare);
         board.setSquare(setToSquare);
-        
+
         Rank r = (side == Side::White) ? Rank::One : Rank::Eight;
 
         Square rookOldSquare;        
@@ -582,6 +571,7 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
 
         board.setCastled(side, true);
 
+        board.passTurn();
         return moveType;
     }
 
@@ -592,6 +582,8 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
     {
         board.setSquare(setFromSquare);
         board.setSquare(setToSquare);
+
+        board.passTurn();
         return moveType;
     }
 
