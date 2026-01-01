@@ -555,6 +555,8 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
         board.setSquare(rookOldSquare);
         board.setSquare(rookNewSquare);
 
+        board.setCastled(side, true);
+
         return moveType;
     }
 
@@ -577,6 +579,8 @@ Chess::MoveType Chess::makeMove(Move move, Side side, Board& board)
 
         board.setSquare(rookOldSquare);
         board.setSquare(rookNewSquare);
+
+        board.setCastled(side, true);
 
         return moveType;
     }

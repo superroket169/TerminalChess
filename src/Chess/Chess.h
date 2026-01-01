@@ -192,6 +192,9 @@ namespace Chess
         void clearEnPassantTarget() { enPassantTarget = {(File) -1, (Rank)(-1)}; }
         BoardCoordinate getEnPassantTarget() const { return enPassantTarget; }
 
+        bool isCastled(Side side) const { return (side == Side::White) ? whiteCastled : blackCastled; }
+        bool setCastled(Side side, bool b) { return ((side == Side::White) ? whiteCastled : blackCastled) = b; }
+        
         bool isKingMoved(Side side) const { return (side == Side::White) ? whiteKingMoved : blackKingMoved; }
         bool isKingRookMoved(Side side) const { return (side == Side::White) ? whiteKingRookMoved : blackKingRookMoved; }
         bool isQueenRookMoved(Side side) const { return (side == Side::White) ? whiteQueenRookMoved : blackQueenRookMoved; }
@@ -209,6 +212,9 @@ namespace Chess
         BoardCoordinate enPassantTarget = {(File) -1, (Rank) -1};
 
         // fixed naming:
+        bool whiteCastled = false;
+        bool blackCastled = false;
+
         bool whiteKingMoved = false;
         bool blackKingMoved = false;
 

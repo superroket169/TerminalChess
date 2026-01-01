@@ -30,4 +30,5 @@ namespace BoardHash
     */
     
     std::string generateID(const Chess::Board& board);
+    Chess::Board loadID(const std::string& id);
 }

@@ -1,8 +1,11 @@
 #include "FlameBot.h"
 #include "../BoardHash/BoardHash.h"
 #include "../Time/Time.h"
+#include "../Chess/Chess.h"
 #include <algorithm>
 #include <iostream>
+#include <cmath>
+#include <algorithm>
 
 Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 {
@@ -74,6 +77,9 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
     return globalBestMove;
 }
 
+/**
+ * @bug cant checkmate
+ */
 int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing)
 {
     std::string boardID = BoardHash::generateID(board);
@@ -88,11 +94,18 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
     Chess::Side currentSide = board.getTurn();
     std::vector<Chess::Move> moves = getAllValidMoves(board, currentSide);
 
-    if (moves.empty())
+    if(Chess::getGameState(board) == Chess::GameState::Checkmate)
+    {
+        if(isMaximizing) return -MATE_SCORE - depth;
+        else return MATE_SCORE + depth;
+    }
+
+    if(moves.empty())
     {
         if (Chess::isKingInCheck(board, currentSide))
         {
-            return isMaximizing ? -MATE_SCORE : MATE_SCORE;
+            if(isMaximizing) return -MATE_SCORE - depth;
+            else return MATE_SCORE + depth;
         }
         else return 0; // Pat
     }
@@ -149,50 +162,115 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
     return finalScore;
 }
 
-int FlameBoth::Bot::evaluate(const Chess::Board& board)
+double specificSigmoid(int totalNonPawnMaterial)
 {
-    int whiteScore = 0;
-    int blackScore = 0;
+    double midPoint = 3500.0; 
+    double k = 0.0025; 
 
-    for (int r = 1; r <= 8; ++r)
+    double phase = 1.0 / (1.0 + std::exp(-k * (totalNonPawnMaterial - midPoint)));
+    
+    return phase;
+}
+
+int FlameBoth::Bot::getRawPieceValue(Chess::Piece type)
+{
+    switch(type)
+    {
+        case Chess::Piece::Pawn:   return (int) EvulateValue::PawnValue;
+        case Chess::Piece::Knight: return (int) EvulateValue::KnightValue;
+        case Chess::Piece::Bishop: return (int) EvulateValue::BishopValue;
+        case Chess::Piece::Rook:   return (int) EvulateValue::RookValue;
+        case Chess::Piece::Queen:  return (int) EvulateValue::QueenValue;
+        case Chess::Piece::King:   return (int) EvulateValue::MateValue;
+        default: return 0;
+    }
+}
+
+int FlameBoth::Bot::getMaterialScore(const Chess::Board& board)
+{
+    int whiteMaterial = 0;
+    int blackMaterial = 0;
+    int whiteNonPawnMaterial = 0;
+    int blackNonPawnMaterial = 0;
+    
+    int positionalScore = 0;
+
+    for(int r = 1; r <= 8; ++r)
     {
         for (int f = 1; f <= 8; ++f)
         {
             Chess::Square sq = board.getSquare({(Chess::File)f, (Chess::Rank)r});
-            if (sq.getPieceType() == Chess::Piece::Empty) continue;
+            if(sq.getPieceType() == Chess::Piece::Empty) continue;
 
-            int pieceValue = 0;
-            
-            switch (sq.getPieceType())
-            {
-                case Chess::Piece::Pawn:   pieceValue = (int) EvulateValue::PawnValue ; break;
-                case Chess::Piece::Knight: pieceValue = (int) EvulateValue::KnightValue ; break;
-                case Chess::Piece::Bishop: pieceValue = (int) EvulateValue::BishopValue ; break;
-                case Chess::Piece::Rook:   pieceValue = (int) EvulateValue::RookValue ; break;
-                case Chess::Piece::Queen:  pieceValue = (int) EvulateValue::QueenValue ; break;
-                case Chess::Piece::King:   pieceValue = (int) EvulateValue::MateValue ; break; 
-            }
-
-            /**
-             * merkezdeyse + puan
-             */
-            if(pieceValue != (int) EvulateValue::MateValue && pieceValue != 0)
-            {
-                // if(r == e4 e5 d4 d5) 
-
-                if( (r == 4 || r == 5) && ( f == 4 || f == 5) ) pieceValue += 50;
-            }
+            int val = getRawPieceValue(sq.getPieceType());
 
             if (sq.getPieceSide() == Chess::Side::White)
-                whiteScore += pieceValue;
+            {
+                whiteMaterial += val;
+                if (sq.getPieceType() != Chess::Piece::Pawn && sq.getPieceType() != Chess::Piece::King) whiteNonPawnMaterial += val;
+            }
             else
-                blackScore += pieceValue;
+            {
+                blackMaterial += val;
+                if (sq.getPieceType() != Chess::Piece::Pawn && sq.getPieceType() != Chess::Piece::King) blackNonPawnMaterial += val;
+            }
+
+            if((r == 4 || r == 5) && (f == 4 || f == 5))
+            {
+                int centerBonus = 0;
+                
+                if(sq.getPieceType() == Chess::Piece::Pawn) centerBonus = 30;
+                else if(sq.getPieceType() == Chess::Piece::Knight) centerBonus = 50;
+                else if(sq.getPieceType() == Chess::Piece::Bishop) centerBonus = 40;
+                
+                if(sq.getPieceSide() == Chess::Side::White) positionalScore += centerBonus;
+                else positionalScore -= centerBonus;
+            }
         }
     }
 
-    return whiteScore - blackScore;
+    int totalNonPawn = whiteNonPawnMaterial + blackNonPawnMaterial;
+    float gameState = specificSigmoid(totalNonPawn);
+
+    int materialScore = whiteMaterial - blackMaterial;
+    
+    return materialScore + positionalScore;
 }
 
+int FlameBoth::Bot::getCastlingScore(const Chess::Board& board)
+{
+    int castlingScore = 0;
+    int castlingScoreWhite = 0;
+    int castlingScoreBlack = 0;
+
+    // if(board.isCastled(Side::Black)) 
+    // if(board.isCastled(Side::White))
+
+
+    castlingScore = castlingScoreWhite - castlingScoreBlack;
+    return castlingScore;
+}
+
+int FlameBoth::Bot::getKingMoveScore(const Chess::Board& board)
+{
+    int rtrnVal = 0;
+    // rtrnVal += 80 * board.isKingMoved(Chess::Side::White) * specificSigmoid(totalNonPawnMaterial);
+    // board.isKingMoved(Chess::Side::Black);
+
+    return 0;
+}
+
+int FlameBoth::Bot::evaluate(const Chess::Board& board)
+{
+    int scoreSum = 0;
+    scoreSum += getMaterialScore(board);
+
+    return scoreSum;
+}
+
+/**
+ * @bug cant checkmate
+ */
 std::vector<Chess::Move> FlameBoth::Bot::getAllValidMoves(const Chess::Board& board, Chess::Side side)
 {
     std::vector<Chess::Move> validMoves;

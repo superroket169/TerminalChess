@@ -5,7 +5,7 @@
 namespace FlameBoth
 {
     const int INF = 1000000;
-    const int MATE_SCORE = 30000;
+    const int MATE_SCORE = 100000000;
 
     enum class EvulateValue 
     { 
@@ -24,8 +24,15 @@ namespace FlameBoth
         Chess::Move getBestMove(Chess::Board board, int depth);
 
     private:
-        int searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing);
+
         int evaluate(const Chess::Board& board);
+        int getMaterialScore(const Chess::Board& board);
+        int getCastlingScore(const Chess::Board& board);
+        int getKingMoveScore(const Chess::Board& board);
+
+        int getRawPieceValue(Chess::Piece type);
+        
+        int searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing);
         std::vector<Chess::Move> getAllValidMoves(const Chess::Board& board, Chess::Side side);
         int fastMoveOrdering(const Chess::Move& move, const Chess::Board& board);
     };
