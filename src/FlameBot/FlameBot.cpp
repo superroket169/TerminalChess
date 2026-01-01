@@ -26,7 +26,6 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
         bool isWhiteTurn = (board.getTurn() == Chess::Side::White);
         int bestVal = isWhiteTurn ? -999999 : 999999;
         
-        // geliştirilmiş ordering alpha-beta cuting hızlanır
         if(depthIndex > 1)
         {
             for(size_t i = 0; i < moves.size(); ++i)
@@ -44,8 +43,16 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 
         for (const auto& move : moves)
         {
+
+            // Chess::GameState gs = Chess::getGameState(board);
+            // std::cout << (gs == Chess::GameState::Ongoing) << " " << (gs == Chess::GameState::Checkmate) << " " << (gs == Chess::GameState::Stalemate) << "\n";
+            
             Chess::Board tempBoard = board;
             Chess::makeMove(move, board.getTurn(), tempBoard); // artık flipliyor
+
+
+            // gs = Chess::getGameState(board);
+            // std::cout << (gs == Chess::GameState::Ongoing) << " " << (gs == Chess::GameState::Checkmate) << " " << (gs == Chess::GameState::Stalemate) << "\n";
         
             int moveVal = searchTree(tempBoard, depthIndex - 1, -INF, INF, false /*ignored*/);
         
@@ -73,9 +80,32 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 
 /**
  * @bug cant checkmate
+ * - okay how bug is bugging finally founded 
+ * - what is it? : ingilizce yetmeyeceği için tr anlatacam : 
+ * - search tree de o an hamle sırası onda olan adam kendi mat oldu mu ona bakıyor.
+ * - ama zaten oraya kadar geldiyse mat olmuyordur. kendim mat oldum mu değil karşı taraf bu hamle yapıldıktan sonra mat oluyormu diye bakılmalı:
+ * - @todo karşı tarafın mat olup olmadığını tmpBoard vb ile kontrol edilecek 
+ * 
+ * @bug extra bug açıklaması :
+ * - aslında getGameState de bir sıkıntı yok. ama bir şekilde mat olduğunda bunu bişey edemiyor. çünkü muhtemelen yanlış tarafta (White Black) kontrol ediyor.
+ * - ileride teşhis derinleştirilip düzeltirilece. ama en önemli kısım bitti 
  */
 int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing)
 {
+    Chess::GameState gs = Chess::getGameState(board);
+    // std::cout << (gs == Chess::GameState::Ongoing) << " " << (gs == Chess::GameState::Checkmate) << " " << (gs == Chess::GameState::Stalemate) << "\n";
+    if (gs == Chess::GameState::Checkmate)
+    {
+        std::cout << "[checkmate]\n";
+        Chess::Side toMove = board.getTurn();
+        if (toMove == Chess::Side::White) return -MATE_SCORE - depth;
+        else return MATE_SCORE + depth;
+    }
+    else if (gs == Chess::GameState::Stalemate)
+    {
+        return 0;
+    }
+
     std::string boardID = BoardHash::generateID(board);
 
     if (BoardHash::Table.count(boardID)) 
@@ -88,19 +118,6 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
             else if (e.bound == BoardHash::BOUND_UPPER) beta = std::min(beta, e.score);
             if (alpha >= beta) return e.score;
         }
-    }
-
-    // terminal kontrolü
-    Chess::GameState gs = Chess::getGameState(board);
-    if (gs == Chess::GameState::Checkmate)
-    {
-        Chess::Side toMove = board.getTurn();
-        if (toMove == Chess::Side::White) return -MATE_SCORE - depth;
-        else return MATE_SCORE + depth;
-    }
-    else if (gs == Chess::GameState::Stalemate)
-    {
-        return 0;
     }
 
     if(depth == 0) return evaluate(board);
@@ -172,7 +189,21 @@ int FlameBoth::Bot::searchTree(Chess::Board board, int depth, int alpha, int bet
     else if (value >= betaOrig) newEntry.bound = BoardHash::BOUND_LOWER;
     else newEntry.bound = BoardHash::BOUND_EXACT;
     BoardHash::Table[boardID] = newEntry;
-
+    {
+        Chess::GameState gs = Chess::getGameState(board);
+        // std::cout << (gs == Chess::GameState::Ongoing) << " " << (gs == Chess::GameState::Checkmate) << " " << (gs == Chess::GameState::Stalemate) << "\n";
+        if (gs == Chess::GameState::Checkmate)
+        {
+            std::cout << "[checkmate]\n";
+            Chess::Side toMove = board.getTurn();
+            if (toMove == Chess::Side::White) return -MATE_SCORE - depth;
+            else return MATE_SCORE + depth;
+        }
+        else if (gs == Chess::GameState::Stalemate)
+        {
+            return 0;
+        }
+    }
     return value;
 }
 
@@ -282,9 +313,6 @@ int FlameBoth::Bot::evaluate(const Chess::Board& board)
     return scoreSum;
 }
 
-/**
- * @bug cant checkmate
- */
 std::vector<Chess::Move> FlameBoth::Bot::getAllValidMoves(const Chess::Board& board, Chess::Side side)
 {
     std::vector<Chess::Move> validMoves;
