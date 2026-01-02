@@ -1,6 +1,7 @@
 *.o
 *.exe
 build/
+localbuild/
 test.cpp
 chess_game
 CMakeFlies/
