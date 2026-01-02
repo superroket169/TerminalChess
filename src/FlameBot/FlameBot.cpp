@@ -56,11 +56,9 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
         
             int moveVal = searchTree(tempBoard, depthIndex - 1, -INF, INF);
         
-            if (isWhiteTurn) {
-                if (moveVal > bestVal) { bestVal = moveVal; currentDepthBestMove = move; }
-            } else {
-                if (moveVal < bestVal) { bestVal = moveVal; currentDepthBestMove = move; }
-            }
+            if (isWhiteTurn && moveVal > bestVal) { bestVal = moveVal; currentDepthBestMove = move; }
+            else if (moveVal < bestVal) { bestVal = moveVal; currentDepthBestMove = move; }
+            
         }
 
 

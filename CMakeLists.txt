@@ -6,17 +6,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(TerminalChess
-  src/test.cpp
+  src/Game.cpp
   src/Time/Time.cpp
   src/Chess/Chess.cpp
   src/FlameBot/FlameBot.cpp
   src/BoardHash/BoardHash.cpp
 )
 
-target_compile_options(TerminalChess PRIVATE -O3)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    message(STATUS ">>> Target System: Windows (Static Build)")
+    target_compile_options(TerminalChess PRIVATE -O3 -funroll-loops -Wall)
+    target_link_options(TerminalChess PRIVATE -static -static-libgcc -static-libstdc++)
 
-target_compile_options(TerminalChess PRIVATE
-  $<$<CXX_COMPILER_ID:GNU>:-O3 -march=native -funroll-loops>
-  $<$<CXX_COMPILER_ID:Clang>:-O3 -march=native -funroll-loops>
-  $<$<CXX_COMPILER_ID:MSVC>:/O2>
-)
+else()
+    message(STATUS ">>> Target System: Linux/Unix (Native Optimization)")
+    target_compile_options(TerminalChess PRIVATE -O3 -march=native -funroll-loops -Wall)
+endif()
