@@ -22,9 +22,11 @@ namespace FlameBoth
     public:
         Bot() = default;
         Chess::Move getBestMove(Chess::Board board, int depth);
-
+        
+        int searchTree(Chess::Board board, int depth, int alpha, int beta);
+        std::vector<Chess::Move> getAllValidMoves(const Chess::Board& board, Chess::Side side);
     private:
-
+        
         int evaluate(const Chess::Board& board);
         int getMaterialScore(const Chess::Board& board);
         int getCastlingScore(const Chess::Board& board);
@@ -32,8 +34,6 @@ namespace FlameBoth
 
         int getRawPieceValue(Chess::Piece type);
         
-        int searchTree(Chess::Board board, int depth, int alpha, int beta, bool isMaximizing);
-        std::vector<Chess::Move> getAllValidMoves(const Chess::Board& board, Chess::Side side);
         int fastMoveOrdering(const Chess::Move& move, const Chess::Board& board);
     };
 }
