@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <array>
+#include <string>
 
 namespace Chess
 {
@@ -205,6 +206,8 @@ namespace Chess
 
         Side getTurn() const { return turn; }
         Side passTurn() { return turn = (turn == Side::White ? Side::Black : Side::White); }
+
+        std::string getBoardVisual() const;
 
     private:
         std::array<std::array<Square, 9>, 9> boardMatris;

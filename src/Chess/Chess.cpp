@@ -4,6 +4,44 @@
 Chess::Square Chess::Board::getSquare(Chess::BoardCoordinate inp) const { return boardMatris[static_cast<std::size_t>(inp.file)][static_cast<std::size_t>(inp.rank)]; };
 Chess::Square Chess::Board::setSquare(Chess::Square inp) { return boardMatris[static_cast<std::size_t>(inp.getCoordinate().file)][static_cast<std::size_t>(inp.getCoordinate().rank)] = inp; };
 
+/**
+ * @brief bu fonksiyon gui için yardımcı fonksiyondur
+ */
+std::string Chess::Board::getBoardVisual() const
+{
+    std::string visual = "";
+    
+    for (int rank = 8; rank >= 1; --rank) 
+    {
+        for (int file = 1; file <= 8; ++file) 
+        {
+            const Square& sq = boardMatris[file][rank];
+            
+            char c = ' ';
+            Piece p = sq.getPieceType();
+            Side s = sq.getPieceSide();
+
+            switch (p)
+            {
+                case Piece::Pawn:   c = 'p'; break;
+                case Piece::Rook:   c = 'r'; break;
+                case Piece::Knight: c = 'n'; break;
+                case Piece::Bishop: c = 'b'; break;
+                case Piece::Queen:  c = 'q'; break;
+                case Piece::King:   c = 'k'; break;
+                default: c = ' '; break; 
+            }
+
+            if (s == Side::White && c != ' ') c = toupper(c);
+            
+            if (p == Piece::Empty) c = ' '; 
+
+            visual += c;
+        }
+    }
+    return visual;
+}
+
 Chess::MoveType Chess::MoveValidator(const Chess::Move& move, const Chess::Side& side, const Chess::Board& board)
 {
     Chess::MoveType type = isValidPieceMove(move, board);
