@@ -1,34 +1,35 @@
-# FlameBot Chess Engine
+# ♟️ FlameBot Chess Engine
 
-FlameBot is a terminal-based chess engine written in C++. 
+FlameBot is a high-performance, modern chess engine written in **C++17**, now featuring a stunning **Neon-themed GUI** built with the **Slint UI framework**. It combines classical chess logic with a sleek cyberpunk aesthetic.
 
-## Features
+---
 
-* **Search Algorithm:** Minimax with Alpha-Beta Pruning.
-* **Optimization:** Move Ordering for faster cut-offs.
-* **Memory:** Transposition Table using String Hashing to cache board states.
-* **Time Management:** Iterative Deepening with a strict time limit (default: 5s).
-* **Interface:** Clean Command Line Interface (CLI).
+## ✨ Features
 
-## Build Instructions
+* **Modern GUI:** A reactive and sleek interface built with **Slint**.
+* **Neon Visuals:** High-quality **SVG-based assets** for chess pieces, ensuring perfect rendering on all systems.
+* **Search Algorithm:** Minimax with **Alpha-Beta Pruning** for deep position analysis.
+* **Optimizations:**
+    * **Move Ordering:** Prioritizes captures and checks to trigger faster Alpha-Beta cut-offs.
+    * **Transposition Table:** Uses **Zobrist/String Hashing** to cache evaluations and speed up the search.
+* **Time Management:** **Iterative Deepening** with strict time limits to ensure the bot plays optimally under pressure.
 
-* You need a C++ compiler that supports **C++17** (GCC, MinGW, or Clang).
-* You can build it on your linux or windows.
+---
 
-### How to build
-Run the following command in the project root:
-* for linux : 
+## 🛠️ Build Instructions
+
+### Prerequisites
+* **C++ Compiler:** GCC, Clang, or MinGW (must support **C++17**).
+* **CMake:** Version 3.21 or higher.
+* **Rust Toolchain:** (Handled automatically via Slint's `FetchContent`).
+
+### Compilation
+
+#### 🐧 For Linux:
 ```bash
+# Set Rust flags for stability
+export RUSTFLAGS="-A dangerous_implicit_autorefs"
+
+# Configure and build
 cmake -S . -B build
-```
-* for windows :
-```bash
-cmake -DCMAKE_TOOLCHAIN_FILE=toolchain-mingw.cmake -S . -B build
-```
-
-## How code works
-* **FlameBoth::Bot::evaluate(..)** this funct calculates boards state
-* **MATE_SCORE** this macro just works if there is a mate. thats value is so high
-* **Alpha-Beta Pruning** optimizates all code. dont look needless tree branches
-* **Move Ordering** this system orders moves for optimizate Alpha-Beta pruning look for ```src/FlameBot/FlameBot.cpp:120```
-* **String Hashing** tanks to hashing FlameBot's speed increases two times. note : should be optimizate hashing
+cmake --build build -j$(nproc)
