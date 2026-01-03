@@ -10,6 +10,7 @@
 Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 {
     Chess::Move globalBestMove;
+    Chess::Move miredownBackup;
     
     std::vector<Chess::Move> moves = getAllValidMoves(board, board.getTurn());
     if (moves.empty()) return globalBestMove;
@@ -18,14 +19,18 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
 
     Time timer;
     timer.start();
-    double timeLimit = 5.0;
+    double timeLimit = 10.0;
+
 
     for(int depthIndex = 1; depthIndex <= depth; depthIndex++)
     {
         Chess::Move currentDepthBestMove;
         bool isWhiteTurn = (board.getTurn() == Chess::Side::White);
-        int bestVal = isWhiteTurn ? -999999 : 999999;
+        int bestVal = isWhiteTurn ? -999999 : 999999; /**< INF macrosu nerede hatırlamıyorum */
         
+        /**
+         * bir önceki best move'u direk en üste taşıyor (fast moveOrdering)
+         */
         if(depthIndex > 1)
         {
             for(size_t i = 0; i < moves.size(); ++i)
@@ -41,6 +46,11 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
             }
         }
 
+        /**
+         * ilk derinlik search de yapılmıyor : 
+         * @todo yarım kalınca current best move direk yapılmasın! önceki depth den kalan yapılsın
+         */
+        miredownBackup = globalBestMove;
         for (const auto& move : moves)
         {
 
@@ -58,6 +68,16 @@ Chess::Move FlameBoth::Bot::getBestMove(Chess::Board board, int depth)
         
             if (isWhiteTurn && moveVal > bestVal) { bestVal = moveVal; currentDepthBestMove = move; }
             else if (moveVal < bestVal) { bestVal = moveVal; currentDepthBestMove = move; }
+
+            /**
+             * daha iyi zaman uyumu için :
+             */
+            if(timer.elapsedTime() > timeLimit)
+            {
+                std::cout << "time is over. procces stoped : " << timer.elapsedTime() << "\n";
+                currentDepthBestMove = miredownBackup;
+                break; 
+            }
             
         }
 

@@ -155,15 +155,15 @@ void ChessApp::onButtonClicked(int id)
     // id 1 : bot çalıştırma butonu
     if(id == 1) // Bot Oyna
     {
-        if(is_game_over) { logToTerminal("Oyun bitti! Resetleyin."); return; }
-        if(board->getTurn() == Chess::Side::White) { logToTerminal("Sıra Sende!"); return; }
+        if(is_game_over) { logToTerminal("> GAME OVER"); return; }
+        if(board->getTurn() == Chess::Side::White) { logToTerminal("> YOUR TURN"); return; }
 
-        logToTerminal("> BOT IS THINKING PLEASE WAIT (5 SECOND)");
+        logToTerminal("> BOT IS THINKING PLEASE WAIT (10 SECOND)");
         
         // Multithreading
         std::thread([this]()
         {
-            auto botMove = bot->getBestMove(*board, 7); 
+            auto botMove = bot->getBestMove(*board, 10); 
 
             slint::invoke_from_event_loop([this, botMove]()
             {
