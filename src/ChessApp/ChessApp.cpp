@@ -13,8 +13,8 @@ ChessApp::ChessApp() : ui(AppWindow::create()), selected_square_index(-1), is_ga
 
 void ChessApp::run()
 {
-    logToTerminal("> OYUN BAŞLADI.");
-    logToTerminal("> Sıra: BEYAZ (Sen)");
+    logToTerminal("> GAME STARTED");
+    logToTerminal("> TURN: WHITE");
     updateBoardVisuals();
     
     ui->on_square_clicked([this](int index) { this->onSquareClicked(index); });
@@ -81,38 +81,38 @@ void ChessApp::checkGameState()
     if(state == Chess::GameState::Checkmate)
     {
         is_game_over = true;
-        std::string winner = (board->getTurn() == Chess::Side::White) ? "SİYAH" : "BEYAZ";
-        logToTerminal("ŞAH MAT! Kazanan: " + winner);
-        logToTerminal("> Yeniden başlatmak için 'Sıfırla'ya bas.");
+        std::string winner = (board->getTurn() == Chess::Side::White) ? "BLACK" : "WHITE";
+        logToTerminal("CHECKMATE WINNER: " + winner);
+        logToTerminal("> FOR RELOAD PRESS RELOAD.");
     }
     else if(state == Chess::GameState::Stalemate)
     {
         is_game_over = true;
-        logToTerminal("PAT! Oyun Berabere.");
+        logToTerminal("STEALMATE");
     }
     else if(Chess::isKingInCheck(*board, board->getTurn()))
     {
-        logToTerminal("ŞAH! Şahını koru.");
+        logToTerminal("CHECK!");
     }
 }
 
 // 
 void ChessApp::onSquareClicked(int index)
 {
-    if(is_game_over) { logToTerminal("Oyun bitti! Lütfen sıfırlayın."); return; }
-    if(board->getTurn() == Chess::Side::Black) { logToTerminal("Sıra Botta! Bekleyin."); return; }
+    if(is_game_over) { logToTerminal("GAMEOVER PLEASE RELOAD GAME"); return; }
+    if(board->getTurn() == Chess::Side::Black) { logToTerminal("BOT'S TURN PLEASE WAIT"); return; }
 
     if(selected_square_index == -1)
     {
         selected_square_index = index;
-        logToTerminal("> Seçildi...");
+        logToTerminal("> CHOSED ()");
     }
     else
     {
         if(selected_square_index == index)
         {
             selected_square_index = -1;
-            logToTerminal("> İptal Edildi...");
+            logToTerminal("> ABORTED ()");
             return;
         }
     
@@ -136,11 +136,11 @@ void ChessApp::onSquareClicked(int index)
             
             checkGameState();
             
-            if(!is_game_over) logToTerminal("✅ Hamle Başarılı. Sıra Botta.");
+            if(!is_game_over) logToTerminal("> MOVE IS SUCCESFULL. BOT'S TURN");
         }
         else 
         {
-            logToTerminal("GEÇERSİZ HAMLE!");
+            logToTerminal("> INVALID MOVE");
             selected_square_index = -1;
         }
     }
@@ -158,7 +158,7 @@ void ChessApp::onButtonClicked(int id)
         if(is_game_over) { logToTerminal("Oyun bitti! Resetleyin."); return; }
         if(board->getTurn() == Chess::Side::White) { logToTerminal("Sıra Sende!"); return; }
 
-        logToTerminal("Bot Düşünüyor (5 sn limit)...");
+        logToTerminal("> BOT IS THINKING PLEASE WAIT (5 SECOND)");
         
         // Multithreading
         std::thread([this]()
@@ -171,7 +171,7 @@ void ChessApp::onButtonClicked(int id)
                 updateBoardVisuals();
                 checkGameState();
                 
-                if(!is_game_over) { logToTerminal("Bot Oynadı! Sıra Sende."); }
+                if(!is_game_over) { logToTerminal("> BOT PLAYED YOUR TURN"); }
             });
         }).detach();
     }
@@ -180,7 +180,7 @@ void ChessApp::onButtonClicked(int id)
         board = std::make_shared<Chess::Board>(); /** < @note board costructor unda direk yeniliyor zaten*/
         is_game_over = false;
         updateBoardVisuals();
-        logToTerminal("Oyun Sıfırlandı.");
+        logToTerminal("> GAME RELOADED");
         selected_square_index = -1;
     }
 }

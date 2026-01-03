@@ -37,18 +37,18 @@ private:
     {
         switch(p)
         {
-            case 'r': return "♜";
-            case 'n': return "♞";
-            case 'b': return "♝";
-            case 'q': return "♛";
-            case 'k': return "♚";
-            case 'p': return "♟";
-            case 'R': return "♖";
-            case 'N': return "♘";
-            case 'B': return "♗";
-            case 'Q': return "♕";
-            case 'K': return "♔";
-            case 'P': return "♙";
+            case 'r': return u8"♜";
+            case 'n': return u8"♞";
+            case 'b': return u8"♝";
+            case 'q': return u8"♛";
+            case 'k': return u8"♚";
+            case 'p': return u8"♟";
+            case 'R': return u8"♖";
+            case 'N': return u8"♘";
+            case 'B': return u8"♗";
+            case 'Q': return u8"♕";
+            case 'K': return u8"♔";
+            case 'P': return u8"♙";
             default: return "";
         }
     }
