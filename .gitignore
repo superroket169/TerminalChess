@@ -5,3 +5,5 @@ localbuild/
 test.cpp
 chess_game
 CMakeFlies/
+clibuild/
+guibuild/
