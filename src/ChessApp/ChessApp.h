@@ -33,22 +33,22 @@ private:
 
     void checkGameState(); 
 
-    slint::SharedString pieceToUnicode(char p)
+    slint::SharedString pieceToImagePath(char p)
     {
         switch(p)
         {
-            case 'r': return u8"♜";
-            case 'n': return u8"♞";
-            case 'b': return u8"♝";
-            case 'q': return u8"♛";
-            case 'k': return u8"♚";
-            case 'p': return u8"♟";
-            case 'R': return u8"♖";
-            case 'N': return u8"♘";
-            case 'B': return u8"♗";
-            case 'Q': return u8"♕";
-            case 'K': return u8"♔";
-            case 'P': return u8"♙";
+            case 'r': return "assets/b_rook.svg";
+            case 'n': return "assets/b_knight.svg";
+            case 'b': return "assets/b_bishop.svg";
+            case 'q': return "assets/b_queen.svg";
+            case 'k': return "assets/b_king.svg";
+            case 'p': return "assets/b_pawn.svg";
+            case 'R': return "assets/w_rook.svg";
+            case 'N': return "assets/w_knight.svg";
+            case 'B': return "assets/w_bishop.svg";
+            case 'Q': return "assets/w_queen.svg";
+            case 'K': return "assets/w_king.svg";
+            case 'P': return "assets/w_pawn.svg";
             default: return "";
         }
     }

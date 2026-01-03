@@ -65,11 +65,19 @@ Chess::BoardCoordinate ChessApp::indexToBoardCoord(int index)
 void ChessApp::updateBoardVisuals()
 {
     std::string board_str = board->getBoardVisual(); 
-    std::vector<slint::SharedString> ui_pieces;
-    for (char c : board_str) ui_pieces.push_back(pieceToUnicode(c));
+    std::vector<slint::Image> ui_pieces;
     
-    auto model = std::make_shared<slint::VectorModel<slint::SharedString>>(ui_pieces);
-    ui->set_board_pieces(model);
+    for (char c : board_str)
+    {
+        slint::SharedString path = pieceToImagePath(c);
+        
+        if (!path.empty()) ui_pieces.push_back(slint::Image::load_from_path(path));
+        else ui_pieces.push_back(slint::Image());
+    }
+    
+    auto model = std::make_shared<slint::VectorModel<slint::Image>>(ui_pieces);
+    
+    ui->set_board_icons(model);
 }
 
 // oyun sonu kontrolü

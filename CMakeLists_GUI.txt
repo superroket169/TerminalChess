@@ -5,10 +5,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(SLINT_DIR "${CMAKE_SOURCE_DIR}/../Slint-cpp-1.14.1-Linux-x86_64")
-set(CMAKE_PREFIX_PATH ${SLINT_DIR})
+set(SLINT_CPP_STATIC OFF CACHE BOOL "Force static Slint" FORCE)
+set(BUILD_SHARED_LIBS ON CACHE BOOL "Use shared libs" FORCE)
 
-find_package(Slint REQUIRED)
+include(FetchContent)
+FetchContent_Declare(
+  Slint
+  GIT_REPOSITORY https://github.com/slint-ui/slint.git
+  GIT_TAG release/1.8 
+  SOURCE_SUBDIR api/cpp
+)
+FetchContent_MakeAvailable(Slint)
 
 add_executable(TerminalChess
   src/gui.cpp
@@ -26,11 +33,17 @@ target_include_directories(TerminalChess PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(TerminalChess PRIVATE Slint::Slint)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    message(STATUS ">>> Target System: Windows (Static Build)")
-    target_compile_options(TerminalChess PRIVATE -O3 -funroll-loops -Wall)
-    target_link_options(TerminalChess PRIVATE -static -static-libgcc -static-libstdc++)
-
+    message(STATUS ">>> Target System: Windows")
+    
+    target_compile_options(TerminalChess PRIVATE 
+        -O3 
+        -funroll-loops 
+        -Wall 
+        -finput-charset=UTF-8 
+        -fexec-charset=UTF-8
+    )
+    
 else()
-    message(STATUS ">>> Target System: Linux/Unix (Native Optimization)")
+    message(STATUS ">>> Target System: Linux/Unix")
     target_compile_options(TerminalChess PRIVATE -O3 -march=native -funroll-loops -Wall)
 endif()
